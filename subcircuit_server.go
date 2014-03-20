@@ -2,7 +2,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -33,11 +32,12 @@ func sc_server_handler(wire net.Conn) error {
 	}
 	if string(command) == "CONN " {
 		// Now read line as the next pubkey
-		dasbuf := bufio.NewReader(awire)
-		nextaddr, err := dasbuf.ReadString('\n')
+		thing := make([]byte, 33)
+		_, err = io.ReadFull(awire, thing)
 		if err != nil {
 			return err
 		}
+		nextaddr := string(thing[:32])
 		relknode := libkiridir.PKeyLookup(nextaddr)
 		if relknode == nil {
 			return errors.New(fmt.Sprintf("Cannot find the relevant pubkey %s.", nextaddr))
