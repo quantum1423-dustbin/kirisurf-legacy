@@ -7,6 +7,7 @@ import (
 	"libkiridir"
 	"libkiss"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,6 +25,10 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {
 		bigserve := NewSCServer(MasterConfig.General.ORAddr)
+		prt, _ := strconv.Atoi(
+			strings.Split(MasterConfig.General.ORAddr, ":")[1])
+		libkiridir.RunRelay(prt, MasterKeyHash,
+			MasterConfig.General.IsExit)
 		for {
 			time.Sleep(time.Second)
 		}
