@@ -80,6 +80,7 @@ func NewSCServer(addr string) SCServer {
 			default:
 				// establish connection
 				client, err := listener.Accept()
+				log.Debug("Of acceptings client: %s", client.RemoteAddr())
 				if err != nil {
 					log.Error(err.Error())
 					client.Close()

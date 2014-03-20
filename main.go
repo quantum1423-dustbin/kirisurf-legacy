@@ -34,5 +34,10 @@ func main() {
 		}
 		bigserve.Kill()
 	}
+	sc, err := build_subcircuit()
+	if err != nil {
+		panic(err.Error())
+	}
+	sc.wire.Close()
 	log.Info("Kirisurf exited")
 }

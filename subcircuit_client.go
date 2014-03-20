@@ -20,6 +20,7 @@ type Subcircuit struct {
 func build_subcircuit() (*Subcircuit, error) {
 	lst := libkiridir.FindPath(MasterConfig.Network.MinCircuitLen)
 	slc := lst.ToSlice()
+	log.Debug(slc)
 	// this returns a checker whether a public key is valid
 	pubkey_checker := func(hsh string) libkiss.Verifier {
 		return func(k *big.Int) bool {
@@ -55,7 +56,7 @@ func build_subcircuit() (*Subcircuit, error) {
 		// at this point wire is raw (well unobfs) connection to next
 		wire, err = libkiss.KiSS_handshake_client(wire, verifier)
 		if err != nil {
-			wire.Close()
+			//wire.Close()
 			return nil, err
 		}
 		log.Debug("Of connected into sc %d", idx)
