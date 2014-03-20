@@ -3,15 +3,14 @@ package main
 
 import (
 	"encoding/base32"
-	"kirisurf/subcircuit"
 	"libkiricrypt"
 	"libkiridir"
 	"libkiss"
 	"runtime"
-	"strconv"
 	"strings"
+	"time"
 
-	"code.google.com/p/log4go"
+	"github.com/coreos/go-log/log"
 )
 
 var MasterKey = libkiricrypt.SecureDH_genpair()
@@ -19,11 +18,16 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	libkiricrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
 func main() {
-	log4go.Info("Kirisurf starting; MasterKeyHash=%s", MasterKeyHash)
+	log.Info("Kirisurf started")
+	libkiridir.RefreshDirectory()
 	libkiss.SetCipher(libkiricrypt.AS_blowfish128_ofb)
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	ourport, _ := (strconv.Atoi(strings.Split(MasterConfig.General.ORAddr, ":")[1]))
-	go libkiridir.RunRelay(ourport, MasterKeyHash, MasterConfig.General.IsExit)
-	subcircuit.TestServer()
-	log4go.Info("Kirisurf exited.")
+	if MasterConfig.General.Role == "server" {
+		bigserve := NewSCServer(MasterConfig.General.ORAddr)
+		for {
+			time.Sleep(time.Second)
+		}
+		bigserve.Kill()
+	}
+	log.Info("Kirisurf exited")
 }
