@@ -4,6 +4,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"libkiridir"
 	"libkiss"
@@ -15,10 +16,12 @@ import (
 func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
 	owire, err := libkiss.Kiriobfs_handshake_server(wire)
+	log.Debug("Of dones for obfs layer")
 	if err != nil {
 		return err
 	}
 	awire, err := libkiss.KiSS_handshake_server(owire, MasterKey)
+	log.Debug("Of dones in kiss layer")
 	if err != nil {
 		return err
 	}
@@ -37,7 +40,7 @@ func sc_server_handler(wire net.Conn) error {
 		}
 		relknode := libkiridir.PKeyLookup(nextaddr)
 		if relknode == nil {
-			return errors.New("Cannot find the relevant pubkey.")
+			return errors.New(fmt.Sprintf("Cannot find the relevant pubkey %s.", nextaddr))
 		}
 		// Establish connection to next node
 		next_wire_raw, err := net.Dial("tcp", relknode.Address)

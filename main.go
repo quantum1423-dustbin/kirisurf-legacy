@@ -19,9 +19,10 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	libkiricrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
 func main() {
+	libkiss.SetCipher(libkiricrypt.AS_blowfish128_ofb)
+	//libkiss.KiSS_test()
 	log.Info("Kirisurf started")
 	libkiridir.RefreshDirectory()
-	libkiss.SetCipher(libkiricrypt.AS_blowfish128_ofb)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {
 		bigserve := NewSCServer(MasterConfig.General.ORAddr)
