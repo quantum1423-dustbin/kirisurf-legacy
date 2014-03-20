@@ -8,6 +8,7 @@ import (
 	"libkiridir"
 	"libkiss"
 	"net"
+	"os"
 
 	"github.com/coreos/go-log/log"
 )
@@ -25,7 +26,7 @@ func sc_server_handler(wire net.Conn) error {
 		return err
 	}
 	// DEBUG DEBUG
-	//io.Copy(os.Stdout, awire)
+	io.Copy(os.Stdout, awire)
 	// Now listen to commands
 	command := make([]byte, 5)
 	_, err = io.ReadFull(awire, command)
