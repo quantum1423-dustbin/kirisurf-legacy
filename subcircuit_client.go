@@ -48,6 +48,7 @@ func build_subcircuit() (*Subcircuit, error) {
 	for idx, ele := range slc[1:] {
 		// extend wire
 		_, err = fmt.Fprintf(wire, "CONN %s\n", ele.PublicKey)
+		log.Debug(ele.PublicKey)
 		if err != nil {
 			wire.Close()
 			return nil, err
