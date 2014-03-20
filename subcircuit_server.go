@@ -8,7 +8,6 @@ import (
 	"libkiridir"
 	"libkiss"
 	"net"
-	"os"
 
 	"github.com/coreos/go-log/log"
 )
@@ -26,7 +25,7 @@ func sc_server_handler(wire net.Conn) error {
 		return err
 	}
 	// DEBUG DEBUG
-	io.Copy(os.Stdout, awire)
+	//io.Copy(os.Stdout, awire)
 	// Now listen to commands
 	command := make([]byte, 5)
 	_, err = io.ReadFull(awire, command)
@@ -35,12 +34,12 @@ func sc_server_handler(wire net.Conn) error {
 	}
 	if string(command) == "CONN " {
 		// Now read line as the next pubkey
-		thing := make([]byte, 33)
+		thing := make([]byte, 10)
 		_, err = io.ReadFull(awire, thing)
 		if err != nil {
 			return err
 		}
-		nextaddr := string(thing[:32])
+		nextaddr := string(thing)
 		relknode := libkiridir.PKeyLookup(nextaddr)
 		if relknode == nil {
 			return errors.New(fmt.Sprintf("Cannot find the relevant pubkey %s.", nextaddr))
