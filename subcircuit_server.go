@@ -2,13 +2,9 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"libkiridir"
+	"encoding/gob"
 	"libkiss"
 	"net"
-	"os"
 
 	"github.com/coreos/go-log/log"
 )
@@ -25,44 +21,14 @@ func sc_server_handler(wire net.Conn) error {
 	if err != nil {
 		return err
 	}
-	// DEBUG DEBUG
-	io.Copy(os.Stdout, awire)
-	// Now listen to commands
-	command := make([]byte, 5)
-	_, err = io.ReadFull(awire, command)
+	// Now awire is the wire
+	gobreader := gob.NewDecoder(awire)
+	var cmd sc_message
+	err = gobreader.Decode(&cmd)
 	if err != nil {
 		return err
 	}
-	if string(command) == "CONN " {
-		// Now read line as the next pubkey
-		thing := make([]byte, 10)
-		_, err = io.ReadFull(awire, thing)
-		if err != nil {
-			return err
-		}
-		nextaddr := string(thing)
-		relknode := libkiridir.PKeyLookup(nextaddr)
-		if relknode == nil {
-			return errors.New(fmt.Sprintf("Cannot find the relevant pubkey %s.", nextaddr))
-		}
-		// Establish connection to next node
-		next_wire_raw, err := net.Dial("tcp", relknode.Address)
-		if err != nil {
-			return err
-		}
-		next_wire_actual, err := libkiss.Kiriobfs_handshake_client(next_wire_raw)
-		if err != nil {
-			return err
-		}
-		// Copy connections
-		go func() {
-			io.Copy(next_wire_actual, awire)
-			next_wire_actual.Close()
-		}()
-		io.Copy(awire, next_wire_actual)
-	} else {
-		return errors.New("Unimplemented method in subcircuit requested")
-	}
+	log.Debug(cmd)
 	return nil
 }
 
