@@ -20,7 +20,7 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 
 func main() {
 	libkiss.SetCipher(libkiricrypt.AS_blowfish128_ofb)
-	//libkiss.KiSS_test()
+	libkiss.KiSS_test()
 	log.Info("Kirisurf started")
 	libkiridir.RefreshDirectory()
 	runtime.GOMAXPROCS(runtime.NumCPU())
