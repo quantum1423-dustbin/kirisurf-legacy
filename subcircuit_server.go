@@ -14,11 +14,13 @@ func sc_server_handler(wire net.Conn) error {
 	owire, err := libkiss.Kiriobfs_handshake_server(wire)
 	log.Debug("Of dones for obfs layer")
 	if err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	awire, err := libkiss.KiSS_handshake_server(owire, MasterKey)
 	log.Debug("Of dones in kiss layer")
 	if err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	// Now awire is the wire
@@ -26,6 +28,7 @@ func sc_server_handler(wire net.Conn) error {
 	var cmd sc_message
 	err = gobreader.Decode(&cmd)
 	if err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	log.Debug(cmd)
