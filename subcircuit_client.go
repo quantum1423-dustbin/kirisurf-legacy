@@ -8,6 +8,7 @@ import (
 	"libkiss"
 	"math/big"
 	"net"
+	"time"
 
 	"github.com/coreos/go-log/log"
 )
@@ -31,7 +32,6 @@ func build_subcircuit() (*Subcircuit, error) {
 	// circuit-building loop
 	iwire, err := net.Dial("tcp", slc[0].Address)
 	if err != nil {
-		iwire.Close()
 		return nil, err
 	}
 	iwire, err = libkiss.Kiriobfs_handshake_client(iwire)
@@ -46,6 +46,7 @@ func build_subcircuit() (*Subcircuit, error) {
 		return nil, err
 	}
 	for idx, ele := range slc[1:] {
+		log.Debug(idx)
 		// extend wire
 		gobber := gob.NewEncoder(wire)
 		gobber.Encode(sc_message{SC_EXTEND, ele.PublicKey})
@@ -64,6 +65,7 @@ func build_subcircuit() (*Subcircuit, error) {
 		}
 		log.Debug("Of connected into sc %d", idx)
 	}
+	time.Sleep(time.Second * 20)
 	log.Debug("Yay subcircuit connectings of dones.")
 	panic("Cannot into lives, can only into dyings.")
 }

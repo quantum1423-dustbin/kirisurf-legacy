@@ -3,6 +3,9 @@ package main
 
 import (
 	"encoding/gob"
+	"errors"
+	"io"
+	"libkiridir"
 	"libkiss"
 	"net"
 
@@ -32,6 +35,26 @@ func sc_server_handler(wire net.Conn) error {
 		return err
 	}
 	log.Debug(cmd)
+	if cmd.Msg_type == SC_EXTEND {
+		theirnode := libkiridir.PKeyLookup(cmd.Msg_arg)
+		if theirnode == nil {
+			return errors.New("Watif")
+		}
+		actwire, err := net.Dial("tcp", theirnode.Address)
+		if err != nil {
+			return err
+		}
+		remwire, err := libkiss.Kiriobfs_handshake_client(actwire)
+		if err != nil {
+			return err
+		}
+		go func() {
+			io.Copy(remwire, awire)
+			remwire.Close()
+		}()
+		io.Copy(awire, remwire)
+		awire.Close()
+	}
 	return nil
 }
 
