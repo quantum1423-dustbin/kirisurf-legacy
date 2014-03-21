@@ -2,7 +2,7 @@ package main
 
 import (
 	"crypto/subtle"
-	"fmt"
+	"encoding/gob"
 	"io"
 	"libkiridir"
 	"libkiss"
@@ -47,12 +47,14 @@ func build_subcircuit() (*Subcircuit, error) {
 	}
 	for idx, ele := range slc[1:] {
 		// extend wire
-		_, err = fmt.Fprintf(wire, "CONN %s\n", ele.PublicKey)
+		gobber := gob.NewEncoder(wire)
+		gobber.Encode(sc_message{SC_EXTEND, ele.PublicKey})
 		log.Debug(ele.PublicKey)
 		if err != nil {
 			wire.Close()
 			return nil, err
 		}
+		break
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
 		wire, err = libkiss.KiSS_handshake_client(wire, verifier)
