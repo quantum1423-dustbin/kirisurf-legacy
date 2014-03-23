@@ -3,11 +3,11 @@ package main
 
 import (
 	"encoding/base32"
-	"libkiricrypt"
+	"kirisurf/ll/kicrypt"
 	"strings"
 )
 
 func hash_base32(data []byte) string {
 	return strings.ToLower(base32.StdEncoding.EncodeToString(
-		libkiricrypt.InvariantHash(data)[:20]))
+		kicrypt.InvariantHash(data)[:20]))
 }

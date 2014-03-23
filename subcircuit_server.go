@@ -5,8 +5,8 @@ import (
 	"encoding/gob"
 	"errors"
 	"io"
-	"libkiridir"
-	"libkiss"
+	"kirisurf/ll/dirclient"
+	"kirisurf/ll/kiss"
 	"net"
 
 	"github.com/coreos/go-log/log"
@@ -14,13 +14,13 @@ import (
 
 func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
-	owire, err := libkiss.Kiriobfs_handshake_server(wire)
+	owire, err := kiss.Kiriobfs_handshake_server(wire)
 	log.Debug("Of dones for obfs layer")
 	if err != nil {
 		log.Error(err.Error())
 		return err
 	}
-	awire, err := libkiss.KiSS_handshake_server(owire, MasterKey)
+	awire, err := kiss.KiSS_handshake_server(owire, MasterKey)
 	log.Debug("Of dones in kiss layer")
 	if err != nil {
 		log.Error(err.Error())
@@ -36,7 +36,7 @@ func sc_server_handler(wire net.Conn) error {
 	}
 	log.Debug(cmd)
 	if cmd.Msg_type == SC_EXTEND {
-		theirnode := libkiridir.PKeyLookup(cmd.Msg_arg)
+		theirnode := dirclient.PKeyLookup(cmd.Msg_arg)
 		if theirnode == nil {
 			return errors.New("Watif")
 		}
@@ -44,7 +44,7 @@ func sc_server_handler(wire net.Conn) error {
 		if err != nil {
 			return err
 		}
-		remwire, err := libkiss.Kiriobfs_handshake_client(actwire)
+		remwire, err := kiss.Kiriobfs_handshake_client(actwire)
 		if err != nil {
 			return err
 		}

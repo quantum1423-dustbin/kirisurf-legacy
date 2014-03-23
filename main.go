@@ -3,9 +3,9 @@ package main
 
 import (
 	"encoding/base32"
-	"libkiricrypt"
-	"libkiridir"
-	"libkiss"
+	"kirisurf/ll/dirclient"
+	"kirisurf/ll/kicrypt"
+	"kirisurf/ll/kiss"
 	"runtime"
 	"strconv"
 	"strings"
@@ -14,21 +14,21 @@ import (
 	"github.com/coreos/go-log/log"
 )
 
-var MasterKey = libkiricrypt.SecureDH_genpair()
+var MasterKey = kicrypt.SecureDH_genpair()
 var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
-	libkiricrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
+	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
 func main() {
-	libkiss.SetCipher(libkiricrypt.AS_blowfish128_ofb)
-	//libkiss.KiSS_test()
+	kiss.SetCipher(kicrypt.AS_blowfish128_ofb)
+	//kiss.KiSS_test()
 	log.Info("Kirisurf started")
-	libkiridir.RefreshDirectory()
+	dirclient.RefreshDirectory()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {
 		bigserve := NewSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
-		libkiridir.RunRelay(prt, MasterKeyHash,
+		dirclient.RunRelay(prt, MasterKeyHash,
 			MasterConfig.General.IsExit)
 		for {
 			time.Sleep(time.Second)

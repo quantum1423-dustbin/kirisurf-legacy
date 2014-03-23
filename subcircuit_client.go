@@ -4,8 +4,8 @@ import (
 	"crypto/subtle"
 	"encoding/gob"
 	"io"
-	"libkiridir"
-	"libkiss"
+	"kirisurf/ll/dirclient"
+	"kirisurf/ll/kiss"
 	"math/big"
 	"net"
 	"time"
@@ -14,16 +14,15 @@ import (
 )
 
 type Subcircuit struct {
-	cpath []libkiridir.KNode
+	cpath []dirclient.KNode
 	wire  io.ReadWriteCloser
 }
 
 func build_subcircuit() (*Subcircuit, error) {
-	lst := libkiridir.FindPath(MasterConfig.Network.MinCircuitLen)
-	slc := lst.ToSlice()
+	slc := dirclient.FindPath(MasterConfig.Network.MinCircuitLen)
 	log.Debug(slc)
 	// this returns a checker whether a public key is valid
-	pubkey_checker := func(hsh string) libkiss.Verifier {
+	pubkey_checker := func(hsh string) kiss.Verifier {
 		return func(k *big.Int) bool {
 			hashed := hash_base32(k.Bytes())
 			return subtle.ConstantTimeCompare([]byte(hashed), []byte(hsh)) == 1
@@ -34,12 +33,12 @@ func build_subcircuit() (*Subcircuit, error) {
 	if err != nil {
 		return nil, err
 	}
-	iwire, err = libkiss.Kiriobfs_handshake_client(iwire)
+	iwire, err = kiss.Kiriobfs_handshake_client(iwire)
 	if err != nil {
 		iwire.Close()
 		return nil, err
 	}
-	wire, err := libkiss.KiSS_handshake_client(
+	wire, err := kiss.KiSS_handshake_client(
 		iwire, pubkey_checker(slc[0].PublicKey))
 	if err != nil {
 		wire.Close()
@@ -58,7 +57,7 @@ func build_subcircuit() (*Subcircuit, error) {
 		break
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
-		wire, err = libkiss.KiSS_handshake_client(wire, verifier)
+		wire, err = kiss.KiSS_handshake_client(wire, verifier)
 		if err != nil {
 			//wire.Close()
 			return nil, err
