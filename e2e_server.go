@@ -44,6 +44,7 @@ func e2e_server_handler(wire *gobwire) {
 				defer rmt.Close()
 				// fork out the upstream handler
 				go func() {
+					defer log.Debug("remote is of closed")
 					defer rmt.Close()
 					for {
 						if die_pl0x {
