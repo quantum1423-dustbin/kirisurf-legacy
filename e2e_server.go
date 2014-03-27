@@ -50,7 +50,9 @@ func e2e_server_handler(wire *gobwire) {
 					log.Debug("e2e server encountered forwarding error: ", err.Error())
 					return
 				}
+				defer log.Debug("Rmt closed")
 				defer rmt.Close()
+				defer log.Debug("Closing rmt")
 				// fork out the upstream handler
 				go func() {
 					defer log.Debug("remote is of closed")
