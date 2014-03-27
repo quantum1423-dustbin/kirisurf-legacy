@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"io"
 	"sync"
+
+	"github.com/coreos/go-log/log"
 )
 
 // Structures for the end-to-end protocol.
@@ -49,12 +51,14 @@ func (wire *gobwire) Receive() (e2e_segment, error) {
 func (wire *gobwire) Send(thing e2e_segment) error {
 	wire._slock.Lock()
 	defer wire._slock.Unlock()
+	log.Debug("Sending: ", thing)
 	tosend := make([]byte, len(thing.Body)+1+2+2)
 	tosend[0] = byte(thing.Flag)
 	binary.LittleEndian.PutUint16(tosend[1:3], uint16(thing.Connid))
 	binary.LittleEndian.PutUint16(tosend[3:5], uint16(len(thing.Body)))
 	copy(tosend[5:], thing.Body)
 	_, err := wire.conn.Write(tosend)
+	log.Debug("Sent.")
 	return err
 }
 
