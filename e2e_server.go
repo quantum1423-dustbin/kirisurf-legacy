@@ -2,7 +2,7 @@
 package main
 
 import (
-	"io"
+	//"io"
 	"net"
 	"time"
 
@@ -10,8 +10,7 @@ import (
 )
 
 // e2e server handler. Subcircuit calls this.
-func e2e_server_handler(client io.ReadWriteCloser) {
-	wire := newGobWire(client)
+func e2e_server_handler(wire *gobwire) {
 	chantable := make(map[int]chan e2e_segment)
 	die_pl0x := false
 	defer wire.destroy()
@@ -88,6 +87,7 @@ func e2e_server_handler(client io.ReadWriteCloser) {
 		} else if newseg.Flag == E2E_DATA || newseg.Flag == E2E_CLOSE {
 			Connid := newseg.Connid
 			if chantable[Connid] == nil {
+				log.Debug("Connid of nil? Pl0x die!")
 				die_pl0x = true
 				continue
 			}

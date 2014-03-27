@@ -8,6 +8,7 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+	"sync"
 
 	"github.com/coreos/go-log/log"
 )
@@ -55,7 +56,12 @@ func sc_server_handler(wire net.Conn) error {
 		io.Copy(awire, remwire)
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
-		e2e_server_handler(awire)
+		inwire := gobreader
+		outwire := gob.NewEncoder(awire)
+		_lock := new(sync.Mutex)
+		destroy := awire.Close
+		thing := gobwire{inwire, outwire, _lock, destroy}
+		e2e_server_handler(&thing)
 	}
 	return nil
 }

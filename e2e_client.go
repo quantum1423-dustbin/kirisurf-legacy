@@ -19,13 +19,29 @@ type e2e_client_ctx struct {
 func make_e2e_client_ctx(conn io.ReadWriteCloser) e2e_client_ctx {
 	wire := newGobWire(conn)
 	lock := new(sync.RWMutex)
-	valid := true
+	valid := new(bool)
+	*valid = true
 	chan_table := make(map[int]chan e2e_segment)
 	connid_chan := make(chan int, 65536)
 	for i := 0; i < 65536; i++ {
 		connid_chan <- i
 	}
-	return e2e_client_ctx{connid_chan, chan_table, wire, lock, &valid}
+	// Loop that pushes data onto clients
+	go func() {
+		for {
+			if !*valid {
+				return
+			}
+			newpkt, err := wire.Receive()
+			if err != nil {
+				*valid = false
+				wire.destroy()
+				return
+			}
+			chan_table[newpkt.Connid] <- newpkt
+		}
+	}()
+	return e2e_client_ctx{connid_chan, chan_table, wire, lock, valid}
 }
 
 func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
@@ -39,6 +55,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	ctx.lock.Lock()
 	ctx.chan_table[connid] = ch
 	ctx.lock.Unlock()
+	log.Debug("Chantab attached")
 	// Detach function
 	detach := func() {
 		ctx.lock.Lock()
@@ -73,9 +90,18 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 			}
 		}
 	}()
+	log.Debug("Ds starteda")
 	defer client.Close()
 	defer detach()
 	// Upstream
+	/*err := ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
+	if err != nil {
+		panic(err.Error())
+	}*/
+	for {
+		log.Debug("WTFWTF")
+		ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
+	}
 	for {
 		if !*ctx.valid {
 			log.Debug("Dying since ctx not valid!!!")
