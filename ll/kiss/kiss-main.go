@@ -151,6 +151,7 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 		rawdat := segment.raw_payload
 		toret, err := state.read_ciph.Open(rawdat)
 		check_fatal(err)
+		FASSERT(len(toret) <= len(p))
 		// Now we must buffer.
 		if len(toret) > len(p) {
 			*state.buffer = append(*state.buffer, toret[len(p):]...)
