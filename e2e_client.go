@@ -4,6 +4,8 @@ package main
 import (
 	"io"
 	"sync"
+
+	"github.com/coreos/go-log/log"
 )
 
 type e2e_client_ctx struct {
@@ -50,19 +52,23 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 		for {
 			if !*ctx.valid {
 				ctx.wire.destroy()
+				log.Debug("Dying since ctx not valid")
 				return
 			}
 			pkt, ok := <-ch
 			if !ok {
+				log.Debug("Dying since ch closed")
 				ctx.wire.destroy()
 				*ctx.valid = false
 				return
 			}
-			if pkt.flag == E2E_CLOSE {
+			if pkt.Flag == E2E_CLOSE {
+				log.Debug("E2E_CLOSE")
 				return
 			}
-			_, err := client.Write(pkt.body)
+			_, err := client.Write(pkt.Body)
 			if err != nil {
+				log.Debug("Cannot into writings to client")
 				return
 			}
 		}
@@ -72,6 +78,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	// Upstream
 	for {
 		if !*ctx.valid {
+			log.Debug("Dying since ctx not valid!!!")
 			return
 		}
 		buf := make([]byte, 16384)
@@ -79,13 +86,15 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 		if err != nil {
 			err := ctx.wire.Send(e2e_segment{E2E_CLOSE, connid, []byte("")})
 			if err != nil {
+				log.Debug("Dying since cannot into sendings.", err.Error())
 				*ctx.valid = false
 				ctx.wire.destroy()
 			}
-			return
+			continue
 		}
 		err = ctx.wire.Send(e2e_segment{E2E_DATA, connid, buf[:n]})
 		if err != nil {
+			log.Debug("Dying since cannot into sendings.", err.Error())
 			*ctx.valid = false
 			ctx.wire.destroy()
 			return

@@ -16,9 +16,9 @@ const (
 )
 
 type e2e_segment struct {
-	flag   int
-	connid int
-	body   []byte
+	Flag   int
+	Connid int
+	Body   []byte
 }
 
 type gobwire struct {

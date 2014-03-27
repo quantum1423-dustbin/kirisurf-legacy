@@ -11,7 +11,7 @@ var ctx_buffer = make(chan e2e_client_ctx, 9)
 
 func enfreshen_scb() {
 	log.Alert("Enfreshen!")
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 1; i++ {
 	retry:
 		log.Alert("Enfreshen!")
 		thing, err := build_subcircuit()
