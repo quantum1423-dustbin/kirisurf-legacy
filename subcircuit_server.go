@@ -14,17 +14,17 @@ import (
 func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
 	owire, err := kiss.Kiriobfs_handshake_server(wire)
+	if err != nil {
+		//log.Error(err.Error())
+		return err
+	}
 	log.Debug("Of dones for obfs layer")
-	if err != nil {
-		log.Error(err.Error())
-		return err
-	}
 	awire, err := kiss.KiSS_handshake_server(owire, MasterKey)
-	log.Debug("Of dones in kiss layer")
 	if err != nil {
-		log.Error(err.Error())
+		//log.Error(err.Error())
 		return err
 	}
+	log.Debug("Of dones in kiss layer")
 	// Now awire is the wire
 	cmd, err := read_sc_message(awire)
 	if err != nil {
@@ -86,7 +86,7 @@ func NewSCServer(addr string) SCServer {
 				go func() {
 					err := sc_server_handler(client)
 					if err != nil {
-						log.Error(err.Error())
+						//log.Error(err.Error())
 					}
 				}()
 			}
