@@ -45,7 +45,7 @@ func (segm KiSS_Segment) StringRep() string {
 func KiSS_read_segment(rdr io.Reader) (KiSS_Segment, error) {
 	//LOG(LOG_DEBUG, "of starting reading a segment")
 	sgmlenbts := make([]byte, 2)
-	_, err := ReadFixed(rdr, sgmlenbts)
+	_, err := io.ReadFull(rdr, sgmlenbts)
 	if err != nil {
 		return KiSS_Segment{0, nil}, err
 	}

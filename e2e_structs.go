@@ -5,6 +5,8 @@ import (
 	"encoding/gob"
 	"io"
 	"sync"
+
+	"github.com/coreos/go-log/log"
 )
 
 // Structures for the end-to-end protocol.
@@ -24,13 +26,14 @@ type e2e_segment struct {
 type gobwire struct {
 	in      *gob.Decoder
 	out     *gob.Encoder
-	_lock   *sync.Mutex
+	_rlock  *sync.Mutex
+	_slock  *sync.Mutex
 	destroy func() error
 }
 
 func (wire *gobwire) Receive() (e2e_segment, error) {
-	wire._lock.Lock()
-	defer wire._lock.Unlock()
+	wire._rlock.Lock()
+	defer wire._rlock.Unlock()
 	var toret e2e_segment
 	err := wire.in.Decode(&toret)
 	if err != nil {
@@ -40,12 +43,14 @@ func (wire *gobwire) Receive() (e2e_segment, error) {
 }
 
 func (wire *gobwire) Send(thing e2e_segment) error {
-	wire._lock.Lock()
-	defer wire._lock.Unlock()
+	log.Debug("trying to acquire lock...")
+	wire._slock.Lock()
+	defer wire._slock.Unlock()
+	log.Debug("trying to send...")
 	return wire.out.Encode(thing)
 }
 
 func newGobWire(thing io.ReadWriteCloser) *gobwire {
-	toret := gobwire{gob.NewDecoder(thing), gob.NewEncoder(thing), new(sync.Mutex), thing.Close}
+	toret := gobwire{gob.NewDecoder(thing), gob.NewEncoder(thing), new(sync.Mutex), new(sync.Mutex), thing.Close}
 	return &toret
 }

@@ -25,6 +25,7 @@ func main() {
 	dirclient.RefreshDirectory()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {
+		go socks5proxy()
 		bigserve := NewSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
