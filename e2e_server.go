@@ -24,6 +24,7 @@ func e2e_server_handler(wire *gobwire) {
 		}
 	}()
 	for {
+		log.Debug(die_pl0x)
 		if die_pl0x {
 			log.Debug("die_pl0x received, die!")
 			return
@@ -77,6 +78,7 @@ func e2e_server_handler(wire *gobwire) {
 				// downstream
 				buf := make([]byte, 16384)
 				for {
+					log.Debug(die_pl0x)
 					if die_pl0x {
 						log.Debug("I guess we should die now...")
 						return
