@@ -34,6 +34,7 @@ func e2e_server_handler(wire *gobwire) {
 		newseg, err := wire.Receive()
 		if err != nil {
 			log.Debug("e2e server handler encountered error: ", err.Error())
+			die_pl0x = true
 			return
 		}
 		if newseg.Flag == E2E_OPEN {
