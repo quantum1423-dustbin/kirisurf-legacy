@@ -19,7 +19,7 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
 func main() {
-	kiss.SetCipher(kicrypt.AS_blowfish128_ofb)
+	kiss.SetCipher(kicrypt.AS_aes128_gcm)
 	//kiss.KiSS_test()
 	log.Info("Kirisurf started")
 	dirclient.RefreshDirectory()

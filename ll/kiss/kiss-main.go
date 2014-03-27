@@ -16,6 +16,7 @@ type KiSS_State struct {
 	written_packets uint64
 	read_packets    uint64
 	wire            io.ReadWriteCloser
+	buffer          *[]byte
 }
 
 type Verifier func(*big.Int) bool
@@ -59,7 +60,9 @@ func KiSS_handshake_server(wire io.ReadWriteCloser, keys kicrypt.SecureDH_keypai
 	downkey := kicrypt.KeyedHash(secret, "kiss-2-down")
 	read_ciph := __KISS_AS(upkey)
 	write_ciph := __KISS_AS(downkey)
-	toret := KiSS_State{read_ciph, write_ciph, secret, 0, 0, wire}
+	bt := new([]byte)
+	*bt = make([]byte, 0)
+	toret := KiSS_State{read_ciph, write_ciph, secret, 0, 0, wire, bt}
 	//LOG(LOG_DEBUG, "keygens on server side of done")
 	return io.ReadWriteCloser(toret), nil
 }
@@ -98,7 +101,9 @@ func KiSS_handshake_client(wire io.ReadWriteCloser, verify Verifier) (io.ReadWri
 	// get the cipher thingies
 	read_ciph := __KISS_AS(downkey)
 	write_ciph := __KISS_AS(upkey)
-	toret := KiSS_State{read_ciph, write_ciph, secret, 0, 0, wire}
+	bt := new([]byte)
+	*bt = make([]byte, 0)
+	toret := KiSS_State{read_ciph, write_ciph, secret, 0, 0, wire, bt}
 	return io.ReadWriteCloser(toret), nil
 }
 
@@ -121,8 +126,14 @@ func (state KiSS_State) Close() error {
 }
 
 func (state KiSS_State) Read(p []byte) (int, error) {
-	defer func() { state.read_packets++ }()
+	// Return anything in buffer first!
+	if len(*state.buffer) > 0 {
+		n := copy(p, *state.buffer)
+		*state.buffer = (*state.buffer)[n:]
+		return n, nil
+	}
 
+	defer func() { state.read_packets++ }()
 	nonce := make([]byte, 8)
 	binary.BigEndian.PutUint64(nonce, state.read_packets)
 	segment, err := KiSS_read_segment(state.wire)
@@ -137,7 +148,13 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 		rawdat := segment.raw_payload
 		toret, err := state.read_ciph.Open(rawdat)
 		check_fatal(err)
-		copy(p, toret)
+		// Now we must buffer.
+		if len(toret) > len(p) {
+			*state.buffer = append(*state.buffer, toret[len(p):]...)
+			copy(p, toret)
+		} else {
+			copy(p, toret)
+		}
 		return len(toret), err
 	} else {
 		SPANIC("Alerts not implemented yet!")
