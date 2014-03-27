@@ -22,20 +22,6 @@ var LOG_DEBUG int = 3
 
 var _log_lock chan bool = make(chan bool, 1)
 
-func ReadFixed(r io.Reader, buf []byte) (int, error) {
-	ptr := 0
-	for {
-		c, err := r.Read(buf[ptr:])
-		ptr = ptr + c
-		if err != nil {
-			return 0, err
-		}
-		if ptr == len(buf) {
-			return ptr, nil
-		}
-	}
-}
-
 func LOG(x int, format string, a ...interface{}) {
 	return
 	_log_lock <- true

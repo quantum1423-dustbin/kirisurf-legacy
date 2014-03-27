@@ -52,7 +52,7 @@ func KiSS_read_segment(rdr io.Reader) (KiSS_Segment, error) {
 	sgmlen := binary.BigEndian.Uint16(sgmlenbts)
 	//LOG(LOG_DEBUG, "of readen the segment length, is of %d|%X", sgmlen, sgmlenbts)
 	sgmbts := make([]byte, sgmlen)
-	_, err = ReadFixed(rdr, sgmbts)
+	_, err = io.ReadFull(rdr, sgmbts)
 	if err != nil {
 		return KiSS_Segment{0, nil}, err
 	}
