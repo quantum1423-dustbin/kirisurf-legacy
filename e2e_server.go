@@ -16,6 +16,13 @@ func e2e_server_handler(wire *gobwire) {
 	defer wire.destroy()
 	defer log.Debug("Exiting...")
 	defer func() { die_pl0x = true }()
+	defer func() {
+		for _, ch := range chantable {
+			if ch != nil {
+				ch <- e2e_segment{E2E_CLOSE, 0, []byte("")}
+			}
+		}
+	}()
 	for {
 		if die_pl0x {
 			log.Debug("die_pl0x received, die!")
