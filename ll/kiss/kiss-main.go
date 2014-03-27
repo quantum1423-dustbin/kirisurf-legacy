@@ -4,6 +4,7 @@ package kiss
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"kirisurf/ll/kicrypt"
 	"math/big"
@@ -131,6 +132,7 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 	if len(*state.buffer) > 0 {
 		n := copy(p, *state.buffer)
 		*state.buffer = (*state.buffer)[n:]
+		fmt.Println("Have to make do mit buffer!")
 		return n, nil
 	}
 
