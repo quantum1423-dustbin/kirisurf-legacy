@@ -122,6 +122,7 @@ func (state KiSS_State) Write(p []byte) (int, error) {
 
 func (state KiSS_State) Close() error {
 	//LOG(LOG_DEBUG, "Closing a KiSS connection")
+	*state.buffer = make([]byte, 0)
 	return state.wire.Close()
 }
 

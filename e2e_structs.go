@@ -39,8 +39,17 @@ func (wire *gobwire) Receive() (e2e_segment, error) {
 	b_connid := make([]byte, 2)
 	b_length := make([]byte, 2)
 	_, err := io.ReadFull(wire.conn, b_flag)
+	if err != nil {
+		return placeholder, err
+	}
 	_, err = io.ReadFull(wire.conn, b_connid)
+	if err != nil {
+		return placeholder, err
+	}
 	_, err = io.ReadFull(wire.conn, b_length)
+	if err != nil {
+		return placeholder, err
+	}
 	b_body := make([]byte, binary.LittleEndian.Uint16(b_length))
 	_, err = io.ReadFull(wire.conn, b_body)
 	if err != nil {
