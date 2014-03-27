@@ -38,6 +38,9 @@ func make_e2e_client_ctx(conn io.ReadWriteCloser) e2e_client_ctx {
 				wire.destroy()
 				return
 			}
+			if chan_table[newpkt.Connid] == nil {
+				continue
+			}
 			chan_table[newpkt.Connid] <- newpkt
 		}
 	}()
@@ -117,7 +120,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 				*ctx.valid = false
 				ctx.wire.destroy()
 			}
-			continue
+			return
 		}
 		err = ctx.wire.Send(e2e_segment{E2E_DATA, connid, buf[:n]})
 		if err != nil {

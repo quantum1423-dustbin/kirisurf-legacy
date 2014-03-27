@@ -185,54 +185,54 @@ func (msg *ansMsg) print() {
 }
 
 func handleConn(conn net.Conn) {
-	defer conn.Close()
-	io.Copy(conn, conn)
-	/*
-		//defer conn.Close()
-		log.Println("remote addr:", conn.RemoteAddr())
+	//defer conn.Close()
+	//io.Copy(conn, conn)
 
-		var reqhello reqHello
-		var ansecho ansEcho
-		var reqmsg reqMsg
-		var ansmsg ansMsg
+	//defer conn.Close()
+	log.Println("remote addr:", conn.RemoteAddr())
 
-		//recv hello
-		var err error = nil
-		err = reqhello.read(conn)
-		if nil != err {
-			return
-		}
-		reqhello.print()
+	var reqhello reqHello
+	var ansecho ansEcho
+	var reqmsg reqMsg
+	var ansmsg ansMsg
 
-		//send echo
-		ansecho.gen(0)
-		ansecho.write(conn)
-		ansecho.print()
+	//recv hello
+	var err error = nil
+	err = reqhello.read(conn)
+	if nil != err {
+		return
+	}
+	reqhello.print()
 
-		//recv request
-		err = reqmsg.read(conn)
-		if nil != err {
-			return
-		}
-		reqmsg.print()
-		//connect
-		var pconn net.Conn
-		pconn, err = net.Dial(reqmsg.reqtype, reqmsg.url)
-		//defer pconn.Close()
+	//send echo
+	ansecho.gen(0)
+	ansecho.write(conn)
+	ansecho.print()
 
-		//reply
-		//error occur
-		if nil != err {
-			ansmsg.gen(&reqmsg, 4)
-			ansmsg.write(conn)
-			ansmsg.print()
-			return
-		}
-		//success
-		ansmsg.gen(&reqmsg, 0)
+	//recv request
+	err = reqmsg.read(conn)
+	if nil != err {
+		return
+	}
+	reqmsg.print()
+	//connect
+	var pconn net.Conn
+	pconn, err = net.Dial(reqmsg.reqtype, reqmsg.url)
+	//defer pconn.Close()
+
+	//reply
+	//error occur
+	if nil != err {
+		ansmsg.gen(&reqmsg, 4)
 		ansmsg.write(conn)
 		ansmsg.print()
-		pipe(conn, pconn)*/
+		return
+	}
+	//success
+	ansmsg.gen(&reqmsg, 0)
+	ansmsg.write(conn)
+	ansmsg.print()
+	pipe(conn, pconn)
 }
 
 func resend(in net.Conn, out net.Conn) {
