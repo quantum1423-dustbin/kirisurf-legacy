@@ -155,7 +155,7 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 		} else {
 			copy(p, toret)
 		}
-		return len(toret), err
+		return len(p), err
 	} else {
 		SPANIC("Alerts not implemented yet!")
 	}

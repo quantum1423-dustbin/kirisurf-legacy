@@ -12,6 +12,7 @@ import (
 // Structures for the end-to-end protocol.
 
 const (
+	__INVALID = iota
 	E2E_OPEN  = iota
 	E2E_CLOSE = iota
 	E2E_DATA  = iota
