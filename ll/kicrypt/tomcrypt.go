@@ -15,6 +15,7 @@ import (
 )
 
 // #cgo LDFLAGS: libtomcrypt.a
+// #cgo CFLAGS: -I ./tomcrypt_headers
 // #include "./tomcrypt_headers/tomcrypt.h"
 import "C"
 
