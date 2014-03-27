@@ -57,6 +57,7 @@ func KiSS_read_segment(rdr io.Reader) (KiSS_Segment, error) {
 		return KiSS_Segment{0, nil}, err
 	}
 	//LOG(LOG_DEBUG, "KISS[%d:...]", sgmbts[0])
+	fmt.Printf(len(sgmbts))
 	return KiSS_Segment{int(sgmbts[0]), sgmbts[1:]}, nil
 }
 
