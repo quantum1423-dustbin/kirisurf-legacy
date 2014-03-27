@@ -14,8 +14,8 @@ import (
 	"unsafe"
 )
 
-// #cgo LDFLAGS: /usr/lib/libtomcrypt.a
-// #include <tomcrypt.h>
+// #cgo LDFLAGS: libtomcrypt.a
+// #include "./tomcrypt_headers/tomcrypt.h"
 import "C"
 
 func FASSERT(cond bool) {
