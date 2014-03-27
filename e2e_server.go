@@ -14,6 +14,7 @@ func e2e_server_handler(wire *gobwire) {
 	chantable := make(map[int]chan e2e_segment)
 	die_pl0x := false
 	defer wire.destroy()
+	defer log.Debug("Exiting...")
 	for {
 		if die_pl0x {
 			log.Debug("die_pl0x received, die!")
