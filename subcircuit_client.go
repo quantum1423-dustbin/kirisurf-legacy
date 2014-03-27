@@ -18,6 +18,7 @@ type Subcircuit struct {
 }
 
 func build_subcircuit() (*Subcircuit, error) {
+	log.Debug("Into buildings sc")
 	slc := dirclient.FindPath(MasterConfig.Network.MinCircuitLen)
 	log.Debug(slc)
 	// this returns a checker whether a public key is valid

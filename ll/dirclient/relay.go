@@ -42,7 +42,7 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		time.Sleep(time.Second)
 		if e != nil {
 			log.Errorf("Error encountered in long poll: %s", e.Error())
-			r.Body.Close()
+			//r.Body.Close()
 			continue
 		}
 		buff := new(bytes.Buffer)
