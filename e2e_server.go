@@ -2,7 +2,7 @@
 package main
 
 import (
-	//"io"
+	"io"
 	"net"
 	"time"
 
@@ -12,15 +12,16 @@ import (
 // e2e server handler. Subcircuit calls this.
 func e2e_server_handler(wire *gobwire) {
 	chantable := make(map[int]chan e2e_segment)
+	conntable := make(map[int]io.ReadWriteCloser)
 	die_pl0x := false
 	defer wire.destroy()
 	defer log.Debug("Exiting...")
 	defer func() { die_pl0x = true }()
 	defer func() {
-		for _, ch := range chantable {
+		for _, c := range conntable {
 			log.Debug("trying to kill...")
-			if ch != nil {
-				ch <- e2e_segment{E2E_CLOSE, 0, []byte("")}
+			if c != nil {
+				c.Close()
 			}
 		}
 	}()
@@ -56,6 +57,7 @@ func e2e_server_handler(wire *gobwire) {
 				defer log.Debug("Rmt closed")
 				defer rmt.Close()
 				defer log.Debug("Closing rmt")
+				conntable[Connid] = rmt
 				// fork out the upstream handler
 				go func() {
 					defer log.Debug("remote is of closed")
