@@ -34,11 +34,8 @@ func main() {
 			time.Sleep(time.Second)
 		}
 		bigserve.Kill()
+	} else if MasterConfig.General.Role == "client" {
+		run_client_loop()
 	}
-	sc, err := build_subcircuit()
-	if err != nil {
-		panic(err.Error())
-	}
-	sc.wire.Close()
 	log.Info("Kirisurf exited")
 }

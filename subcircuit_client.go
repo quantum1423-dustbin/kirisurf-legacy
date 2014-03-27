@@ -8,7 +8,6 @@ import (
 	"kirisurf/ll/kiss"
 	"math/big"
 	"net"
-	"time"
 
 	"github.com/coreos/go-log/log"
 )
@@ -64,7 +63,7 @@ func build_subcircuit() (*Subcircuit, error) {
 		}
 		log.Debug("Of connected into sc %d", idx)
 	}
-	time.Sleep(time.Second * 20)
 	log.Debug("Yay subcircuit connectings of dones.")
-	panic("Cannot into lives, can only into dyings.")
+	toret := Subcircuit{slc, wire}
+	return &toret, nil
 }
