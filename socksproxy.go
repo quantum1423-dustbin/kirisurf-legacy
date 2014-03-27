@@ -236,6 +236,7 @@ func handleConn(conn net.Conn) {
 }
 
 func resend(in net.Conn, out net.Conn) {
+	defer out.Close()
 	buf := make([]byte, 10240)
 	for {
 		n, err := in.Read(buf)
