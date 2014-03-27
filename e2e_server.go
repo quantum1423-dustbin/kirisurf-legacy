@@ -19,6 +19,7 @@ func e2e_server_handler(wire *gobwire) {
 			log.Debug("die_pl0x received, die!")
 			return
 		}
+		log.Debug("waiting for new seg...")
 		newseg, err := wire.Receive()
 		if err != nil {
 			log.Debug("e2e server handler encountered error: ", err.Error())

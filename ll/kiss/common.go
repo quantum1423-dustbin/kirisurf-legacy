@@ -37,6 +37,7 @@ func ReadFixed(r io.Reader, buf []byte) (int, error) {
 }
 
 func LOG(x int, format string, a ...interface{}) {
+	return
 	_log_lock <- true
 	switch {
 	case x == LOG_DEBUG:
