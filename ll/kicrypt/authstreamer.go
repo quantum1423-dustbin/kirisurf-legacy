@@ -7,6 +7,7 @@ import (
 	"crypto/subtle"
 	"encoding/binary"
 	"errors"
+	"fmt"
 )
 
 // Authenticated streamer. Counter nonce is implicit!
@@ -56,6 +57,7 @@ func (state __XOR_authstreamer) Seal(pt []byte) ([]byte, error) {
 	noncebytes := string(append(counterbytes, state.secret_key...))
 	hash := hash_keyed(toret[64:], string(noncebytes))
 	copy(toret[0:64], hash)
+	fmt.Printf("Sealed %x->%x\n", pt, toret)
 	return toret, nil
 }
 

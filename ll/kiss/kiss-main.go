@@ -2,9 +2,9 @@
 package kiss
 
 import (
+	//"bufio"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"kirisurf/ll/kicrypt"
 	"math/big"
@@ -114,9 +114,10 @@ func (state KiSS_State) Write(p []byte) (int, error) {
 		state.written_packets++
 		//LOG(LOG_DEBUG, "Exiting KiSS_State.Write")
 	}()
+	LOG(LOG_DEBUG, "To write: %d:%s", len(p), string(p))
 	towrite, _ := state.write_ciph.Seal(p)
 	encaps := KiSS_Segment{K_APP_DATA, towrite}
-	//LOG(LOG_DEBUG, "Written segment: %s|%X", encaps.StringRep(), encaps.Bytes())
+	LOG(LOG_DEBUG, "Written segment: %s|%X", encaps.StringRep(), towrite)
 	_, err := state.wire.Write(encaps.Bytes())
 	return len(p), err
 }
@@ -129,10 +130,10 @@ func (state KiSS_State) Close() error {
 
 func (state KiSS_State) Read(p []byte) (int, error) {
 	// Return anything in buffer first!
+
 	if len(*state.buffer) > 0 {
 		n := copy(p, *state.buffer)
 		*state.buffer = (*state.buffer)[n:]
-		fmt.Println("Have to make do mit buffer!")
 		return n, nil
 	}
 
@@ -140,7 +141,7 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 	nonce := make([]byte, 8)
 	binary.BigEndian.PutUint64(nonce, state.read_packets)
 	segment, err := KiSS_read_segment(state.wire)
-	//LOG(LOG_DEBUG, "Obtained segment: %s|%X", segment.StringRep(), segment.Bytes())
+	LOG(LOG_DEBUG, "Obtained segment: %s|%X", segment.StringRep(), segment.Bytes())
 	if err != nil {
 		return 0, err
 	}
@@ -151,15 +152,14 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 		rawdat := segment.raw_payload
 		toret, err := state.read_ciph.Open(rawdat)
 		check_fatal(err)
-		FASSERT(len(toret) <= len(p))
+		//FASSERT(len(toret) <= len(p))
 		// Now we must buffer.
 		if len(toret) > len(p) {
 			*state.buffer = append(*state.buffer, toret[len(p):]...)
-			copy(p, toret)
+			return copy(p, toret), nil
 		} else {
-			copy(p, toret)
+			return copy(p, toret), nil
 		}
-		return len(p), err
 	} else {
 		SPANIC("Alerts not implemented yet!")
 	}
