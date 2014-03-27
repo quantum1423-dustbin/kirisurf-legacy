@@ -2,11 +2,9 @@
 package main
 
 import (
-	"encoding/gob"
+	"encoding/binary"
 	"io"
 	"sync"
-
-	"github.com/coreos/go-log/log"
 )
 
 // Structures for the end-to-end protocol.
@@ -24,8 +22,7 @@ type e2e_segment struct {
 }
 
 type gobwire struct {
-	in      *gob.Decoder
-	out     *gob.Encoder
+	conn    io.ReadWriteCloser
 	_rlock  *sync.Mutex
 	_slock  *sync.Mutex
 	destroy func() error
@@ -34,23 +31,34 @@ type gobwire struct {
 func (wire *gobwire) Receive() (e2e_segment, error) {
 	wire._rlock.Lock()
 	defer wire._rlock.Unlock()
-	var toret e2e_segment
-	err := wire.in.Decode(&toret)
+	var placeholder e2e_segment
+	b_flag := make([]byte, 1)
+	b_connid := make([]byte, 2)
+	b_length := make([]byte, 2)
+	_, err := io.ReadFull(wire.conn, b_flag)
+	_, err = io.ReadFull(wire.conn, b_connid)
+	_, err = io.ReadFull(wire.conn, b_length)
+	b_body := make([]byte, binary.LittleEndian.Uint16(b_length))
+	_, err = io.ReadFull(wire.conn, b_body)
 	if err != nil {
-		return toret, err
+		return placeholder, err
 	}
-	return toret, nil
+	return e2e_segment{int(b_flag[0]), int(binary.LittleEndian.Uint16(b_connid)), b_body}, nil
 }
 
 func (wire *gobwire) Send(thing e2e_segment) error {
-	log.Debug("trying to acquire lock...")
 	wire._slock.Lock()
 	defer wire._slock.Unlock()
-	log.Debug("trying to send...")
-	return wire.out.Encode(thing)
+	tosend := make([]byte, len(thing.Body)+1+2+2)
+	tosend[0] = byte(thing.Flag)
+	binary.LittleEndian.PutUint16(tosend[1:3], uint16(thing.Connid))
+	binary.LittleEndian.PutUint16(tosend[3:5], uint16(len(thing.Body)))
+	copy(tosend[5:], thing.Body)
+	_, err := wire.conn.Write(tosend)
+	return err
 }
 
 func newGobWire(thing io.ReadWriteCloser) *gobwire {
-	toret := gobwire{gob.NewDecoder(thing), gob.NewEncoder(thing), new(sync.Mutex), new(sync.Mutex), thing.Close}
+	toret := gobwire{thing, new(sync.Mutex), new(sync.Mutex), thing.Close}
 	return &toret
 }
