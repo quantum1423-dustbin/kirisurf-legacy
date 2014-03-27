@@ -18,6 +18,7 @@ func e2e_server_handler(wire *gobwire) {
 	defer func() { die_pl0x = true }()
 	defer func() {
 		for _, ch := range chantable {
+			log.Debug("trying to kill...")
 			if ch != nil {
 				ch <- e2e_segment{E2E_CLOSE, 0, []byte("")}
 			}
