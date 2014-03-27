@@ -56,6 +56,7 @@ func KiSS_read_segment(rdr io.Reader) (KiSS_Segment, error) {
 	if err != nil {
 		return KiSS_Segment{0, nil}, err
 	}
+	if sgmlen == 0 return KiSS_read_segment(rdr)
 	//LOG(LOG_DEBUG, "KISS[%d:...]", sgmbts[0])
 	fmt.Println(len(sgmbts))
 	return KiSS_Segment{int(sgmbts[0]), sgmbts[1:]}, nil
