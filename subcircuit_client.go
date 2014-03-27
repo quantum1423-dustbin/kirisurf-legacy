@@ -64,6 +64,8 @@ func build_subcircuit() (*Subcircuit, error) {
 		}
 		log.Debug("Of connected into sc %d", idx)
 	}
+	gobber := gob.NewEncoder(wire)
+	gobber.Encode(sc_message{SC_EXTEND, ""})
 	log.Debug("Yay subcircuit connectings of dones.")
 	toret := Subcircuit{slc, wire}
 	return &toret, nil
