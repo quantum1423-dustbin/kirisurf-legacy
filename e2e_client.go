@@ -94,14 +94,15 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	defer client.Close()
 	defer detach()
 	// Upstream
-	/*err := ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
+	err := ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
 	if err != nil {
 		panic(err.Error())
-	}*/
-	for {
+	}
+	/*for {
 		log.Debug("WTFWTF")
 		ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
-	}
+	}*/
+	log.Debug("Open sent")
 	for {
 		if !*ctx.valid {
 			log.Debug("Dying since ctx not valid!!!")

@@ -2,13 +2,11 @@
 package main
 
 import (
-	"encoding/gob"
 	"errors"
 	"io"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
-	"sync"
 
 	"github.com/coreos/go-log/log"
 )
@@ -28,9 +26,7 @@ func sc_server_handler(wire net.Conn) error {
 		return err
 	}
 	// Now awire is the wire
-	gobreader := gob.NewDecoder(awire)
-	var cmd sc_message
-	err = gobreader.Decode(&cmd)
+	cmd, err := read_sc_message(awire)
 	if err != nil {
 		log.Error(err.Error())
 		return err
@@ -56,12 +52,7 @@ func sc_server_handler(wire net.Conn) error {
 		io.Copy(awire, remwire)
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
-		inwire := gobreader
-		outwire := gob.NewEncoder(awire)
-		_lock := new(sync.Mutex)
-		destroy := awire.Close
-		thing := gobwire{inwire, outwire, _lock, destroy}
-		e2e_server_handler(&thing)
+		e2e_server_handler(newGobWire(awire))
 	}
 	return nil
 }

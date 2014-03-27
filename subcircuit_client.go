@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/subtle"
-	"encoding/gob"
 	"io"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
@@ -47,14 +46,13 @@ func build_subcircuit() (*Subcircuit, error) {
 	for idx, ele := range slc[1:] {
 		log.Debug(idx)
 		// extend wire
-		gobber := gob.NewEncoder(wire)
-		gobber.Encode(sc_message{SC_EXTEND, ele.PublicKey})
+		err = write_sc_message(sc_message{SC_EXTEND, ele.PublicKey}, wire)
 		log.Debug(ele.PublicKey)
 		if err != nil {
 			wire.Close()
 			return nil, err
 		}
-		break
+
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
 		wire, err = kiss.KiSS_handshake_client(wire, verifier)
@@ -64,8 +62,10 @@ func build_subcircuit() (*Subcircuit, error) {
 		}
 		log.Debug("Of connected into sc %d", idx)
 	}
-	gobber := gob.NewEncoder(wire)
-	gobber.Encode(sc_message{SC_TERMINATE, ""})
+	err = write_sc_message(sc_message{SC_TERMINATE, ""}, wire)
+	if err != nil {
+		return nil, err
+	}
 	log.Debug("Yay subcircuit connectings of dones.")
 	toret := Subcircuit{slc, wire}
 	return &toret, nil
