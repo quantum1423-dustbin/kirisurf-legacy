@@ -19,8 +19,9 @@ func e2e_server_handler(wire *gobwire) {
 	defer func() { die_pl0x = true }()
 	defer func() {
 		for _, c := range conntable {
-			log.Debug("trying to kill...")
+			log.Debug("OMGOMGOMGOMGOM DEEEED")
 			if c != nil {
+				log.Debug("OMGOMGOMGOMGOM DEEEED")
 				c.Close()
 			}
 		}

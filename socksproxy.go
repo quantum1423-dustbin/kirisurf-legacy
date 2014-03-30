@@ -7,7 +7,6 @@ import (
 	// "encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"net"
 )
 
@@ -15,7 +14,6 @@ func recv(buf []byte, m int, conn net.Conn) (n int, err error) {
 	for nn := 0; n < m; {
 		nn, err = conn.Read(buf[n:m])
 		if nil != err && io.EOF != err {
-			log.Println("err:", err)
 			panic(err)
 			return
 		}
@@ -43,10 +41,6 @@ func (msg *reqHello) read(conn net.Conn) (err error) {
 	return
 }
 func (msg *reqHello) print() {
-	log.Println("************")
-	log.Println("get reqHello msg:")
-	log.Println("ver:", msg.ver, " nmethods:", msg.nmethods, " methods:", msg.methods[:msg.nmethods])
-	log.Println("************")
 }
 
 type ansEcho struct {
@@ -63,10 +57,6 @@ func (msg *ansEcho) write(conn net.Conn) {
 	conn.Write(msg.buf[:])
 }
 func (msg *ansEcho) print() {
-	log.Println("------------------")
-	log.Println("send ansEcho msg:")
-	log.Println("ver:", msg.ver, " method:", msg.method)
-	log.Println("------------------")
 }
 
 type reqMsg struct {
@@ -92,7 +82,6 @@ func (msg *reqMsg) read(conn net.Conn) (err error) {
 	msg.ver, msg.cmd, msg.rsv, msg.atyp = buf[0], buf[1], buf[2], buf[3]
 
 	if 5 != msg.ver || 0 != msg.rsv {
-		log.Println("Request Message VER or RSV error!")
 		return
 	}
 	switch msg.atyp {
@@ -123,7 +112,6 @@ func (msg *reqMsg) read(conn net.Conn) (err error) {
 	case 1:
 		msg.reqtype = "tcp"
 	case 2:
-		log.Println("BIND")
 	case 3:
 		msg.reqtype = "udp"
 	}
@@ -134,15 +122,10 @@ func (msg *reqMsg) read(conn net.Conn) (err error) {
 		msg.url = string(msg.dst_addr[1 : 1+msg.dst_addr[0]])
 		msg.url += fmt.Sprintf(":%d", msg.dst_port2)
 	case 4: //ipv6
-		log.Println("IPV6")
 	}
 	return
 }
 func (msg *reqMsg) print() {
-	log.Println("---***-----****----***---")
-	log.Println("get reqMsg:")
-	log.Println("ver:", msg.ver, " cmd:", msg.cmd, " rsv:", msg.rsv, " atyp", msg.atyp, " dst_addr:", msg.url)
-	log.Println("---***-----****----***---")
 }
 
 type ansMsg struct {
@@ -178,10 +161,6 @@ func (msg *ansMsg) write(conn net.Conn) {
 	conn.Write(msg.buf[:msg.mlen])
 }
 func (msg *ansMsg) print() {
-	log.Println("***-----****----***---***")
-	log.Println("send ans Msg:")
-	log.Println(msg.buf[:msg.mlen])
-	log.Println("***-----****----***---***")
 }
 
 func handleConn(conn net.Conn) {
@@ -189,7 +168,6 @@ func handleConn(conn net.Conn) {
 	//io.Copy(conn, conn)
 
 	//defer conn.Close()
-	log.Println("remote addr:", conn.RemoteAddr())
 
 	var reqhello reqHello
 	var ansecho ansEcho
@@ -237,14 +215,13 @@ func handleConn(conn net.Conn) {
 
 func resend(in net.Conn, out net.Conn) {
 	defer out.Close()
+	defer in.Close()
 	buf := make([]byte, 10240)
 	for {
 		n, err := in.Read(buf)
 		if io.EOF == err {
-			log.Printf("io.EOF")
 			return
 		} else if nil != err {
-			log.Printf("resend err\n", err)
 			return
 		}
 		out.Write(buf[:n])
