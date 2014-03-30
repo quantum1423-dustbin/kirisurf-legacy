@@ -47,6 +47,11 @@ func RunRelay(port int, keyhash string, isexit bool) {
 				port, PROTVER, keyhash, ieflag)
 			r, e := http.Get(url)
 			log.Debug(url)
+			if e != nil {
+				log.Errorf("Error encountered in info upload: %s", e.Error())
+				r.Body.Close()
+				panic("WTF")
+			}
 			continue
 		}
 		buff := new(bytes.Buffer)
