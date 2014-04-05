@@ -34,13 +34,13 @@ func build_subcircuit() (*Subcircuit, error) {
 	}
 	iwire, err = kiss.Kiriobfs_handshake_client(iwire)
 	if err != nil {
-		iwire.Close()
+		//iwire.Close()
 		return nil, err
 	}
 	wire, err := kiss.KiSS_handshake_client(
 		iwire, pubkey_checker(slc[0].PublicKey))
 	if err != nil {
-		wire.Close()
+		//wire.Close()
 		return nil, err
 	}
 	for idx, ele := range slc[1:] {

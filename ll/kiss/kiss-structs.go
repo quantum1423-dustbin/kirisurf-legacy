@@ -6,6 +6,7 @@ import "math/big"
 
 import "io"
 import "fmt"
+import "errors"
 
 const (
 	K_HANDSHAKE_C = iota
@@ -81,7 +82,12 @@ func (hss KiSS_HS_Server) Pack() []byte {
 }
 
 // Unpacks a client handshake into a byte slice
-func KiSS_unpack_client_handshake(raw_blob []byte) (KiSS_HS_Client, error) {
+func KiSS_unpack_client_handshake(raw_blob []byte) (cln KiSS_HS_Client, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
 	// The version number is of first byte.
 	vnum := int(raw_blob[0])
 	// The next 256 bytes (2048 bits) are of ephemeral DH
@@ -90,7 +96,12 @@ func KiSS_unpack_client_handshake(raw_blob []byte) (KiSS_HS_Client, error) {
 }
 
 // Unpacks a server handshake into a byte slice
-func KiSS_unpack_server_handshake(raw_blob []byte, checker func(*big.Int) bool) (KiSS_HS_Server, error) {
+func KiSS_unpack_server_handshake(raw_blob []byte, checker func(*big.Int) bool) (cln KiSS_HS_Server, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
 	// The first 256 bytes are the long-term DH key.
 	long_dh := big.NewInt(0).SetBytes(raw_blob[:256])
 	// The next 256 bytes are the short-term DH key.

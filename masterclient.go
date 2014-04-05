@@ -2,6 +2,7 @@
 package main
 
 import (
+	"math/rand"
 	"net"
 	"runtime"
 
@@ -12,14 +13,16 @@ var ctx_buffer = make(chan e2e_client_ctx, 9)
 
 func enfreshen_scb() {
 	log.Alert("Enfreshen!")
-	for i := 0; i < 1; i++ {
-	retry:
-		log.Alert("Enfreshen!")
-		thing, err := build_subcircuit()
-		if err != nil {
-			goto retry
-		}
-		ctx_buffer <- make_e2e_client_ctx(thing.wire)
+	for i := 0; i < 5; i++ {
+		go func() {
+		retry:
+			log.Alert("Enfreshen!")
+			thing, err := build_subcircuit()
+			if err != nil {
+				goto retry
+			}
+			ctx_buffer <- make_e2e_client_ctx(thing.wire)
+		}()
 	}
 	log.Alert("Freshened!")
 }
@@ -27,9 +30,26 @@ func enfreshen_scb() {
 func run_client_loop() {
 	enfreshen_scb()
 	// Round robin, basically
-	get_ctx := func() e2e_client_ctx {
+	var get_ctx func() e2e_client_ctx
+	get_ctx = func() e2e_client_ctx {
 		toret := <-ctx_buffer
+		if !*toret.valid || *toret.dying {
+			log.Debug("BUFFERED CTX NOT VALID")
+		retry:
+			log.Alert("Enfreshen!")
+			thing, err := build_subcircuit()
+			if err != nil {
+				goto retry
+			}
+			ctx_buffer <- make_e2e_client_ctx(thing.wire)
+			return get_ctx()
+		}
 		ctx_buffer <- toret
+		if rand.Int()%10 == 0 {
+			log.Debug("MARKING AS DYING")
+			*toret.dying = true
+			return get_ctx()
+		}
 		return toret
 	}
 	// Main loop

@@ -4,6 +4,7 @@ package main
 import (
 	"io"
 	"sync"
+	"sync/atomic"
 
 	"github.com/coreos/go-log/log"
 )
@@ -14,6 +15,8 @@ type e2e_client_ctx struct {
 	wire        *gobwire
 	lock        *sync.RWMutex
 	valid       *bool
+	dying       *bool
+	refcount    *int32
 }
 
 func make_e2e_client_ctx(conn io.ReadWriteCloser) e2e_client_ctx {
@@ -44,13 +47,34 @@ func make_e2e_client_ctx(conn io.ReadWriteCloser) e2e_client_ctx {
 			chan_table[newpkt.Connid] <- newpkt
 		}
 	}()
-	return e2e_client_ctx{connid_chan, chan_table, wire, lock, valid}
+	dying := new(bool)
+	*dying = false
+	refcount := new(int32)
+	*refcount = 0
+	return e2e_client_ctx{connid_chan, chan_table, wire, lock, valid, dying, refcount}
 }
 
 func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	if !*ctx.valid {
 		panic("Context already invalid!")
 	}
+	atomic.AddInt32(ctx.refcount, 1)
+	defer func() {
+		atomic.AddInt32(ctx.refcount, -1)
+		if *ctx.refcount == 0 && *ctx.dying {
+			log.Debug("Refcount down and dying!!!!!")
+			*ctx.valid = false
+			ctx.lock.RLock()
+			for _, e := range ctx.chan_table {
+				if e != nil {
+					close(e)
+				}
+			}
+			ctx.lock.RUnlock()
+			ctx.wire.destroy()
+		}
+	}()
+
 	// Obtain a connection ID
 	connid := <-ctx.connid_chan
 	ch := make(chan e2e_segment, 1024)
@@ -60,10 +84,14 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	ctx.lock.Unlock()
 	log.Debug("Chantab attached")
 	// Detach function
+	var once sync.Once
 	detach := func() {
-		ctx.lock.Lock()
-		ctx.chan_table[connid] = nil
-		ctx.lock.Unlock()
+		once.Do(func() {
+			ctx.lock.Lock()
+			ctx.chan_table[connid] = nil
+			close(ch)
+			ctx.lock.Unlock()
+		})
 	}
 	// Downstream
 	go func() {

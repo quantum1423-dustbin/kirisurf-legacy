@@ -5,6 +5,7 @@ import (
 	//"bufio"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"kirisurf/ll/kicrypt"
 	"math/big"
@@ -32,7 +33,12 @@ func SetCipher(blah func([]byte) kicrypt.AuthStreamer) {
 	__KISS_AS = blah
 }
 
-func KiSS_handshake_server(wire io.ReadWriteCloser, keys kicrypt.SecureDH_keypair) (io.ReadWriteCloser, error) {
+func KiSS_handshake_server(wire io.ReadWriteCloser, keys kicrypt.SecureDH_keypair) (wr io.ReadWriteCloser, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
 	// read their handshake
 	their_greeting_packed, err1 := KiSS_read_segment(wire)
 	if err1 != nil {
@@ -68,7 +74,12 @@ func KiSS_handshake_server(wire io.ReadWriteCloser, keys kicrypt.SecureDH_keypai
 	return io.ReadWriteCloser(toret), nil
 }
 
-func KiSS_handshake_client(wire io.ReadWriteCloser, verify Verifier) (io.ReadWriteCloser, error) {
+func KiSS_handshake_client(wire io.ReadWriteCloser, verify Verifier) (wr io.ReadWriteCloser, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
 	// our keys
 	our_keypair := kicrypt.SecureDH_genpair()
 	//LOG(LOG_DEBUG, "CPUB: %d", our_keypair.Public)
@@ -76,7 +87,7 @@ func KiSS_handshake_client(wire io.ReadWriteCloser, verify Verifier) (io.ReadWri
 	our_greeting := KiSS_HS_Client{0x02, our_keypair.Public}
 	our_greeting_packed := KiSS_Segment{K_HANDSHAKE_C, our_greeting.Pack()}
 	// send across the client handshake
-	_, err := wire.Write(our_greeting_packed.Bytes())
+	_, err = wire.Write(our_greeting_packed.Bytes())
 	if err != nil {
 		return nil, errors.New("wtf")
 	}
@@ -108,7 +119,12 @@ func KiSS_handshake_client(wire io.ReadWriteCloser, verify Verifier) (io.ReadWri
 	return io.ReadWriteCloser(toret), nil
 }
 
-func (state KiSS_State) Write(p []byte) (int, error) {
+func (state KiSS_State) Write(p []byte) (sdfjld int, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
 	//LOG(LOG_DEBUG, "Entering KiSS_State.Write")
 	defer func() {
 		state.written_packets++
@@ -118,7 +134,7 @@ func (state KiSS_State) Write(p []byte) (int, error) {
 	towrite, _ := state.write_ciph.Seal(p)
 	encaps := KiSS_Segment{K_APP_DATA, towrite}
 	LOG(LOG_DEBUG, "Written segment: %s|%X", encaps.StringRep(), towrite)
-	_, err := state.wire.Write(encaps.Bytes())
+	_, err = state.wire.Write(encaps.Bytes())
 	return len(p), err
 }
 
@@ -128,7 +144,12 @@ func (state KiSS_State) Close() error {
 	return state.wire.Close()
 }
 
-func (state KiSS_State) Read(p []byte) (int, error) {
+func (state KiSS_State) Read(p []byte) (qwe int, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprint(r))
+		}
+	}()
 	// Return anything in buffer first!
 
 	if len(*state.buffer) > 0 {
@@ -161,7 +182,7 @@ func (state KiSS_State) Read(p []byte) (int, error) {
 			return copy(p, toret), nil
 		}
 	} else {
-		SPANIC("Alerts not implemented yet!")
+		return 0, errors.New("Unknown seg type!!!!")
 	}
 	SPANIC("WTF?!?!?!?!?")
 	return 0, io.EOF

@@ -15,7 +15,7 @@ func FindPath(minlen int) []KNode {
 	for {
 		idx := rand.Int() % len(KDirectory)
 		thing := KDirectory[idx]
-		if thing.Address != "(hidden)" {
+		if thing.Address != "(hidden)" && rand.Int()%10 < 1 {
 			entry = thing
 			break
 		}
