@@ -116,6 +116,20 @@ func e2e_server_handler(wire *gobwire) {
 						return
 					}
 					defer conn.Close()
+
+					// Token bucket
+					tokenbucket := make(chan bool, 256) // 1mb grace period
+					go func() {
+						for {
+							select {
+							case tokenbucket <- true:
+								time.Sleep(time.Second / 10)
+							case <-KILLSWITCH:
+								return
+							}
+						}
+					}()
+
 					// Downstream
 					go func() {
 						defer conn.Close()
@@ -126,6 +140,8 @@ func e2e_server_handler(wire *gobwire) {
 								log.Debug("KILLSWITCH signalled on remote downstr!")
 								return
 							default:
+								// Obtain token
+								<-tokenbucket
 								n, err := conn.Read(buf)
 								if err != nil {
 									log.Debug("Received error from remote")
