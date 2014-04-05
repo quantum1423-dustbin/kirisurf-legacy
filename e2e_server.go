@@ -98,7 +98,7 @@ func e2e_server_handler(wire *gobwire) {
 				log.Debugf("E2E_OPEN(%d)", connid)
 				chantable[connid] = make(chan e2e_segment, 16)
 				go func() {
-					conn, err := net.DialTimeout("tcp", SOCKSADDR, 16)
+					conn, err := net.DialTimeout("tcp", SOCKSADDR, time.Second*20)
 					closepak := e2e_segment{E2E_CLOSE, connid, []byte("")}
 					defer func() {
 						gdownstream <- closepak
@@ -109,6 +109,7 @@ func e2e_server_handler(wire *gobwire) {
 					tablock.Unlock()
 					if err != nil {
 						log.Debug("Error encountered in remote: ", err.Error())
+						return
 					}
 					defer conn.Close()
 					// Upstream
