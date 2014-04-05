@@ -5,7 +5,6 @@ import (
 	"net"
 	"runtime/debug"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/coreos/go-log/log"
@@ -104,7 +103,9 @@ func e2e_server_handler(wire *gobwire) {
 					conn, err := net.DialTimeout("tcp", SOCKSADDR, time.Second*20)
 					closepak := e2e_segment{E2E_CLOSE, connid, []byte("")}
 					defer func() {
-						if (!IAMDEAD) gdownstream <- closepak
+						if !IAMDEAD {
+							gdownstream <- closepak
+						}
 					}()
 					tablock.Lock()
 					conntable[connid] = conn
