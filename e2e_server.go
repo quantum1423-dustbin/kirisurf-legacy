@@ -5,6 +5,7 @@ import (
 	"net"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/coreos/go-log/log"
@@ -21,9 +22,11 @@ func e2e_server_handler(wire *gobwire) {
 	// global upstream and downstream
 	gupstream := make(chan e2e_segment, 16)
 	gdownstream := make(chan e2e_segment, 16)
+	IAMDEAD := false
 	var once sync.Once
 	global_die := func() {
 		once.Do(func() {
+			IAMDEAD = true
 			log.Debug("global_die() called!")
 			log.Debug("signalling KILLSWITCH")
 			close(KILLSWITCH)
@@ -101,7 +104,7 @@ func e2e_server_handler(wire *gobwire) {
 					conn, err := net.DialTimeout("tcp", SOCKSADDR, time.Second*20)
 					closepak := e2e_segment{E2E_CLOSE, connid, []byte("")}
 					defer func() {
-						gdownstream <- closepak
+						if (!IAMDEAD) gdownstream <- closepak
 					}()
 					tablock.Lock()
 					conntable[connid] = conn
