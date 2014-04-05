@@ -105,9 +105,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 			}
 			pkt, ok := <-ch
 			if !ok {
-				log.Debug("Dying since ch closed")
-				ctx.wire.destroy()
-				*ctx.valid = false
+				log.Debug("Returning since ch closed")
 				return
 			}
 			if pkt.Flag == E2E_CLOSE {
