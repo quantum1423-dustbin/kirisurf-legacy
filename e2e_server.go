@@ -2,8 +2,9 @@
 package main
 
 import (
-	"io"
 	"net"
+	"runtime/debug"
+	"sync"
 	"time"
 
 	"github.com/coreos/go-log/log"
@@ -11,111 +12,139 @@ import (
 
 // e2e server handler. Subcircuit calls this.
 func e2e_server_handler(wire *gobwire) {
+	// KILLSWITCH. Use in select, when this thing closes everything is going to die
+	KILLSWITCH := make(chan bool)
+
 	chantable := make(map[int]chan e2e_segment)
-	conntable := make(map[int]io.ReadWriteCloser)
-	die_pl0x := false
-	defer wire.destroy()
-	defer log.Debug("Exiting...")
-	defer func() { die_pl0x = true }()
-	defer func() {
-		for _, c := range conntable {
-			log.Debug("OMGOMGOMGOMGOM DEEEED")
-			if c != nil {
-				log.Debug("OMGOMGOMGOMGOM DEEEED")
-				c.Close()
+	var tablock sync.RWMutex
+	conntable := make(map[int]net.Conn)
+	// global upstream and downstream
+	gupstream := make(chan e2e_segment, 16)
+	gdownstream := make(chan e2e_segment, 16)
+	global_die := func() {
+		var once sync.Once
+		once.Do(func() {
+			log.Debug("global_die() called!")
+			log.Debug("signalling KILLSWITCH")
+			close(KILLSWITCH)
+			log.Debug("sleeping 1 second to prevent race...")
+			time.Sleep(time.Second)
+			log.Debug("destroying global objects...")
+			close(gupstream)
+			close(gdownstream)
+			wire.destroy()
+			for _, ch := range chantable {
+				close(ch)
+			}
+			log.Debug("chantable closed")
+			chantable = nil
+			log.Debug("chantable nilled")
+			for _, cn := range conntable {
+				cn.Close()
+			}
+			log.Debug("conntable closed")
+			conntable = nil
+			log.Debug("conntable nilled")
+			log.Debug("collecting garbage and exiting...")
+			debug.FreeOSMemory()
+		})
+	}
+
+	// goroutines for makings of stronk up and down
+	go func() {
+		defer wire.destroy()
+		for {
+			newpkt, ok := <-gdownstream
+			if !ok {
+				log.Debug("gdownstream got not ok, dying")
+				global_die()
+				return
+			}
+			err := wire.Send(newpkt)
+			if err != nil {
+				log.Debug("gdownstream send error: ", err.Error())
+				log.Debug("gdownstream dying")
+				global_die()
+				return
 			}
 		}
 	}()
+	go func() {
+		defer wire.destroy()
+		for {
+			newpkt, err := wire.Receive()
+			if err != nil {
+				log.Debug("gupstream receive error, closing")
+				global_die()
+				return
+			}
+			gupstream <- newpkt
+		}
+	}()
+	defer wire.conn.Close()
 	for {
-		log.Debug(die_pl0x)
-		if die_pl0x {
-			log.Debug("die_pl0x received, die!")
+		select {
+		case <-KILLSWITCH:
+			log.Debug("KILLSWITCH received in main loop, returning")
 			return
-		}
-		log.Debug("waiting for new seg...")
-		newseg, err := wire.Receive()
-		if err != nil {
-			log.Debug("e2e server handler encountered error: ", err.Error())
-			die_pl0x = true
-			return
-		}
-		if newseg.Flag == E2E_OPEN {
-			log.Debug("e2e server received open connection request, Connid ", newseg.Connid)
-			commchan := make(chan e2e_segment)
-			chantable[newseg.Connid] = commchan
-			go func() {
-				commchan := commchan
-				Connid := newseg.Connid
-				// prepare in case of emergencyings
-				close_pkt := e2e_segment{E2E_CLOSE, newseg.Connid, []byte("byeings")}
-				defer wire.Send(close_pkt)
-				// open das connektion
-				rmt, err := net.DialTimeout("tcp", SOCKSADDR, time.Second*20)
-				if err != nil {
-					log.Debug("e2e server encountered forwarding error: ", err.Error())
-					return
-				}
-				defer log.Debug("Rmt closed")
-				defer rmt.Close()
-				defer log.Debug("Closing rmt")
-				conntable[Connid] = rmt
-				// fork out the upstream handler
+		case thing, ok := <-gupstream:
+			if !ok {
+				log.Debug("gupstream not of okays, dying")
+				global_die()
+				return
+			}
+			if thing.Flag == E2E_OPEN {
+				connid := thing.Connid
+				log.Debugf("E2E_OPEN(%d)", connid)
+				chantable[connid] = make(chan e2e_segment, 16)
 				go func() {
-					defer log.Debug("remote is of closed")
-					defer rmt.Close()
+					tablock.Lock()
+					conn, err := net.DialTimeout("tcp", SOCKSADDR, 16)
+					defer conn.Close()
+					closepak := e2e_segment{E2E_CLOSE, connid, []byte("")}
+					defer func() {
+						gdownstream <- closepak
+					}()
+					conntable[connid] = conn
+					ch := chantable[connid]
+					tablock.Unlock()
+					if err != nil {
+						log.Debug("Error encountered in remote: ", err.Error())
+						tablock.Lock()
+					}
+					// Upstream
 					for {
-						if die_pl0x {
-							log.Debug("I guess we should die now...")
+						select {
+						case <-KILLSWITCH:
+							log.Debug("KILLSWITCH signalled on remote conn!")
 							return
-						}
-						pkt := <-commchan
-						if pkt.Flag == E2E_CLOSE {
-							log.Debug("E2E_CLOSE received")
-							return
-						}
-						_, err := rmt.Write(pkt.Body)
-						if err != nil {
-							log.Debug("Write error to remote: ", err.Error())
-							return
+						case newthing, ok := <-ch:
+							if !ok {
+								log.Debug("connection chan closed!")
+								return
+							}
+							if newthing.Flag == E2E_CLOSE {
+								log.Debug("E2E_CLOSE received")
+								return
+							}
+							_, err := conn.Write(newthing.Body)
+							if err != nil {
+								log.Debug("Error while writing to remote: ", err.Error())
+								return
+							}
 						}
 					}
 				}()
-				// downstream
-				buf := make([]byte, 16384)
-				for {
-					log.Debug(die_pl0x)
-					if die_pl0x {
-						log.Debug("I guess we should die now...")
-						return
-					}
-					n, err := rmt.Read(buf)
-					if err != nil {
-						log.Debug("Read error from remote: ", err.Error())
-						return
-					}
-					thing := make([]byte, n)
-					copy(thing, buf[:n])
-					data_pkt := e2e_segment{E2E_DATA, Connid, thing}
-					err = wire.Send(data_pkt)
-					if err != nil {
-						log.Debug("Write error to client: ", err.Error())
-						die_pl0x = true
-						return
-					}
-				}
-			}()
-		} else if newseg.Flag == E2E_DATA || newseg.Flag == E2E_CLOSE {
-			Connid := newseg.Connid
-			if chantable[Connid] == nil {
-				log.Debug("Connid of nil? Pl0x die!")
-				die_pl0x = true
-				continue
+			} else if thing.Flag == E2E_DATA || thing.Flag == E2E_CLOSE {
+				tablock.RLock()
+				ch := chantable[thing.Connid]
+				tablock.RUnlock()
+				ch <- thing
+			} else {
+				log.Debug("Weird, weird, weird segment received!")
+				global_die()
+				return
 			}
-			chantable[Connid] <- newseg
-		} else {
-			log.Error("e2e server received a packet with a weird Flag")
-			die_pl0x = true
-			return
 		}
 	}
 }
