@@ -118,7 +118,10 @@ func e2e_server_handler(wire *gobwire) {
 					defer conn.Close()
 
 					// Token bucket
-					tokenbucket := make(chan bool, 256) // 1mb grace period
+					tokenbucket := make(chan bool, 1024) // 4mb grace period
+					for i := 0; i < 1000; i++ {
+						tokenbucket <- true
+					}
 					go func() {
 						for {
 							select {
