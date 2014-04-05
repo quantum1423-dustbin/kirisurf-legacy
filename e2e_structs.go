@@ -41,23 +41,23 @@ func (wire *gobwire) Receive() (e2e_segment, error) {
 	b_length := make([]byte, 2)
 	_, err := io.ReadFull(wire.conn, b_flag)
 	if err != nil {
-		log.Debug("Receive() returning an error")
+		log.Debug("Receive() returning an error: ", err.Error())
 		return placeholder, err
 	}
 	_, err = io.ReadFull(wire.conn, b_connid)
 	if err != nil {
-		log.Debug("Receive() returning an error")
+		log.Debug("Receive() returning an error: ", err.Error())
 		return placeholder, err
 	}
 	_, err = io.ReadFull(wire.conn, b_length)
 	if err != nil {
-		log.Debug("Receive() returning an error")
+		log.Debug("Receive() returning an error: ", err.Error())
 		return placeholder, err
 	}
 	b_body := make([]byte, binary.LittleEndian.Uint16(b_length))
 	_, err = io.ReadFull(wire.conn, b_body)
 	if err != nil {
-		log.Debug("Receive() returning an error")
+		log.Debug("Receive() returning an error: ", err.Error())
 		return placeholder, err
 	}
 	return e2e_segment{int(b_flag[0]), int(binary.LittleEndian.Uint16(b_connid)), b_body}, nil
