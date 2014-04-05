@@ -3,6 +3,7 @@ package main
 
 import (
 	"net"
+	"runtime"
 
 	"github.com/coreos/go-log/log"
 )
@@ -44,5 +45,25 @@ func run_client_loop() {
 			continue
 		}
 		go get_ctx().AttachClient(nconn)
+	}
+}
+
+func run_diagnostic_loop() {
+	listener, err := net.Listen("tcp", "127.0.0.1:9222")
+	if err != nil {
+		panic(err)
+	}
+	for {
+		nconn, err := listener.Accept()
+		if err != nil {
+			log.Debug("Error while accepting: ", err.Error())
+			continue
+		}
+		go func() {
+			defer nconn.Close()
+			buf := make([]byte, 65536)
+			n := runtime.Stack(buf, true)
+			nconn.Write(buf[:n])
+		}()
 	}
 }

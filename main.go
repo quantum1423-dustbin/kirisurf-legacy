@@ -19,6 +19,7 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
 func main() {
+	go run_diagnostic_loop()
 	kiss.SetCipher(kicrypt.AS_aes128_gcm)
 	//kiss.KiSS_test()
 	log.Info("Kirisurf started")
