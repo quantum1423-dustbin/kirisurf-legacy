@@ -21,8 +21,8 @@ func e2e_server_handler(wire *gobwire) {
 	// global upstream and downstream
 	gupstream := make(chan e2e_segment, 16)
 	gdownstream := make(chan e2e_segment, 16)
+	var once sync.Once
 	global_die := func() {
-		var once sync.Once
 		once.Do(func() {
 			log.Debug("global_die() called!")
 			log.Debug("signalling KILLSWITCH")
