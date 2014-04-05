@@ -112,6 +112,28 @@ func e2e_server_handler(wire *gobwire) {
 						return
 					}
 					defer conn.Close()
+					// Downstream
+					go func() {
+						defer conn.Close()
+						for {
+							buf := make([]byte, 4096)
+							select {
+							case <-KILLSWITCH:
+								log.Debug("KILLSWITCH signalled on remote downstr!")
+								return
+							default:
+								n, err := conn.Read(buf)
+								if err != nil {
+									log.Debug("Received error from remote")
+									return
+								}
+								ah := make([]byte, n)
+								copy(ah, buf[:n])
+								tosend := e2e_segment{E2E_DATA, connid, ah}
+								gdownstream <- tosend
+							}
+						}
+					}()
 					// Upstream
 					for {
 						select {
