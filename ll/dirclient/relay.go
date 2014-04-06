@@ -42,15 +42,15 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		time.Sleep(time.Second)
 		if e != nil {
 			log.Errorf("Error encountered in long poll: %s", e.Error())
+		retry:
 			url := fmt.Sprintf("%s/upload?port=%d&protocol=%d&keyhash=%s&exit=%d",
 				DIRADDR,
 				port, PROTVER, keyhash, ieflag)
-			r, e := http.Get(url)
+			_, e := http.Get(url)
 			log.Debug(url)
 			if e != nil {
 				log.Errorf("Error encountered in info upload: %s", e.Error())
-				r.Body.Close()
-				panic("WTF")
+				goto retry
 			}
 			continue
 		}
