@@ -186,6 +186,7 @@ type Kiriobfs_state struct {
 }
 
 func (state Kiriobfs_state) Read(b []byte) (int, error) {
+	state.underlying.SetReadDeadline(time.Now().Add(time.Second * 20))
 	n, err := state.underlying.Read(b)
 	//state.RC4_state_r.Reset()
 	state.RC4_state_r.XORKeyStream(b[:n], b[:n])
@@ -193,6 +194,7 @@ func (state Kiriobfs_state) Read(b []byte) (int, error) {
 }
 
 func (state Kiriobfs_state) Write(b []byte) (int, error) {
+	state.underlying.SetWriteDeadline(time.Now().Add(time.Second * 20))
 	buf := make([]byte, len(b))
 	//state.RC4_state_w.Reset()
 	state.RC4_state_w.XORKeyStream(buf, b)
