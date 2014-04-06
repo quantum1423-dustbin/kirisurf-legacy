@@ -7,7 +7,7 @@ import (
 	"crypto/subtle"
 	"encoding/binary"
 	"errors"
-	"fmt"
+	//"fmt"
 )
 
 // Authenticated streamer. Counter nonce is implicit!
