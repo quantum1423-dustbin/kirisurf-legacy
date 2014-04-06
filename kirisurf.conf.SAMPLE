@@ -6,4 +6,4 @@ DirectoryURL = https://directory.kirisurf.org/
 Role = client
  
 [network]
-MinCircuitLen = 1
+MinCircuitLen = 5

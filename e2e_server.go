@@ -126,6 +126,7 @@ func e2e_server_handler(wire *gobwire) {
 					for i := 0; i < 1000; i++ {
 						tokenbucket <- true
 					}
+					hardtb := make(chan bool, 256) // Hard tb for sendme coordination
 					go func() {
 						for {
 							select {
@@ -148,6 +149,7 @@ func e2e_server_handler(wire *gobwire) {
 								return
 							default:
 								// Obtain token
+								<-hardtb
 								<-tokenbucket
 								n, err := conn.Read(buf)
 								if err != nil {
@@ -175,6 +177,15 @@ func e2e_server_handler(wire *gobwire) {
 							if newthing.Flag == E2E_CLOSE {
 								log.Debug("E2E_CLOSE received")
 								return
+							}
+							if newthing.Flag == E2E_SENDMORE {
+								log.Debug("Send more...")
+								for i := 0; i < 256; i++ {
+									select {
+									case hardtb <- true:
+									default:
+									}
+								}
 							}
 							_, err := conn.Write(newthing.Body)
 							if err != nil {
