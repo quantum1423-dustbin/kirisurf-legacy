@@ -6,9 +6,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	big "github.com/ncw/gmp"
 	"io"
 	"kirisurf/ll/kicrypt"
-	"math/big"
 )
 
 type KiSS_State struct {

@@ -2,6 +2,7 @@
 package main
 
 import (
+	"kirisurf/ll/dirclient"
 	"math/rand"
 	"net"
 	"runtime"
@@ -19,6 +20,7 @@ func enfreshen_scb() {
 			log.Alert("Enfreshen!")
 			thing, err := build_subcircuit()
 			if err != nil {
+				dirclient.RefreshDirectory()
 				goto retry
 			}
 			ctx_buffer <- make_e2e_client_ctx(thing.wire)

@@ -5,9 +5,9 @@ import (
 	"crypto/rand"
 	"crypto/rc4"
 	"errors"
+	big "github.com/ncw/gmp"
 	"io"
 	"kirisurf/ll/kicrypt"
-	"math/big"
 	"net"
 	"time"
 )

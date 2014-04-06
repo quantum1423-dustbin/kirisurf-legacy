@@ -3,7 +3,7 @@ package kicrypt
 
 import (
 	"crypto/rand"
-	"math/big"
+	big "github.com/ncw/gmp"
 )
 
 var GROUP5 = func() *big.Int {
@@ -34,11 +34,13 @@ func UniformDH_genpair() UniformDH_keypair {
 	privateInt.Mul(privateInt, big.NewInt(2))
 
 	publicInt := big.NewInt(0).Exp(big.NewInt(2), privateInt, GROUP5)
-	res, err := rand.Int(rand.Reader, big.NewInt(2))
+	ggg := make([]byte, 1)
+	_, err := rand.Read(ggg)
+	ggg[0] = ggg[0] % 2
 	if err != nil {
 		panic(err.Error())
 	}
-	if res.Int64() == 0 {
+	if ggg[0] == 0 {
 		publicInt = big.NewInt(0).Sub(GROUP5, publicInt)
 	}
 	if len(privateInt.Bytes()) == 192 && len(publicInt.Bytes()) == 192 {

@@ -2,7 +2,7 @@
 package kiss
 
 import "encoding/binary"
-import "math/big"
+import big "github.com/ncw/gmp"
 
 import "io"
 import "fmt"
@@ -106,5 +106,8 @@ func KiSS_unpack_server_handshake(raw_blob []byte, checker func(*big.Int) bool) 
 	long_dh := big.NewInt(0).SetBytes(raw_blob[:256])
 	// The next 256 bytes are the short-term DH key.
 	short_dh := big.NewInt(0).SetBytes(raw_blob[256:512])
+	if !checker(long_dh) {
+		return KiSS_HS_Server{long_dh, short_dh}, errors.New("Public key mismatch!")
+	}
 	return KiSS_HS_Server{long_dh, short_dh}, nil
 }

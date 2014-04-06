@@ -2,10 +2,10 @@ package main
 
 import (
 	"crypto/subtle"
+	big "github.com/ncw/gmp"
 	"io"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
-	"math/big"
 	"net"
 
 	"github.com/coreos/go-log/log"
@@ -24,6 +24,7 @@ func build_subcircuit() (*Subcircuit, error) {
 	pubkey_checker := func(hsh string) kiss.Verifier {
 		return func(k *big.Int) bool {
 			hashed := hash_base32(k.Bytes())
+			log.Debugf("Comparing %s with %s", hsh, hashed)
 			return subtle.ConstantTimeCompare([]byte(hashed), []byte(hsh)) == 1
 		}
 	}
