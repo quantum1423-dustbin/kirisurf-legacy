@@ -131,6 +131,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	defer detach()
 	// Upstream
 	err := ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
+	err = ctx.wire.Send(e2e_segment{E2E_SENDMORE, connid, []byte("")})
 	if err != nil {
 		panic(err.Error())
 	}

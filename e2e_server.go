@@ -195,7 +195,7 @@ func e2e_server_handler(wire *gobwire) {
 						}
 					}
 				}()
-			} else if thing.Flag == E2E_DATA || thing.Flag == E2E_CLOSE {
+			} else if thing.Flag == E2E_DATA || thing.Flag == E2E_CLOSE || thing.Flag == E2E_SENDMORE {
 				tablock.RLock()
 				ch := chantable[thing.Connid]
 				tablock.RUnlock()
