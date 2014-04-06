@@ -38,7 +38,7 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		panic("WTF")
 	}
 	for {
-		r, e := http.Get("https://directory.kirisurf.org/longpoll")
+		r, e := http.Get(fmt.Sprintf("%s/longpoll", DIRADDR))
 		time.Sleep(time.Second)
 		if e != nil {
 			log.Errorf("Error encountered in long poll: %s", e.Error())

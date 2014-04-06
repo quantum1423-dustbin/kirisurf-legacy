@@ -36,13 +36,17 @@ func e2e_server_handler(wire *gobwire) {
 			close(gdownstream)
 			wire.destroy()
 			for _, ch := range chantable {
-				close(ch)
+				if ch != nil {
+					close(ch)
+				}
 			}
 			log.Debug("chantable closed")
 			chantable = nil
 			log.Debug("chantable nilled")
 			for _, cn := range conntable {
-				cn.Close()
+				if cn != nil {
+					cn.Close()
+				}
 			}
 			log.Debug("conntable closed")
 			conntable = nil

@@ -35,13 +35,15 @@ func run_client_loop() {
 		toret := <-ctx_buffer
 		if !*toret.valid || *toret.dying {
 			log.Debug("BUFFERED CTX NOT VALID")
-		retry:
-			log.Alert("Enfreshen!")
-			thing, err := build_subcircuit()
-			if err != nil {
-				goto retry
-			}
-			ctx_buffer <- make_e2e_client_ctx(thing.wire)
+			go func() {
+			retry:
+				log.Alert("Enfreshen!")
+				thing, err := build_subcircuit()
+				if err != nil {
+					goto retry
+				}
+				ctx_buffer <- make_e2e_client_ctx(thing.wire)
+			}()
 			return get_ctx()
 		}
 		ctx_buffer <- toret

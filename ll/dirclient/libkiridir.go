@@ -60,7 +60,3 @@ func PKeyLookup(pkey string) *KNode {
 	}
 	return toret
 }
-
-func init() {
-	RefreshDirectory()
-}
