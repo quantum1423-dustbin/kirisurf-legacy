@@ -38,6 +38,7 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		panic("WTF")
 	}
 	for {
+		time.Sleep(time.Second)
 		r, e := http.Get(fmt.Sprintf("%s/longpoll", DIRADDR))
 		if e != nil {
 			log.Errorf("Error encountered in long poll: %s", e.Error())
@@ -54,7 +55,6 @@ func RunRelay(port int, keyhash string, isexit bool) {
 			}
 			continue
 		}
-		time.Sleep(time.Second)
 		buff := new(bytes.Buffer)
 		io.Copy(buff, r.Body)
 		protector.Lock()
@@ -64,6 +64,17 @@ func RunRelay(port int, keyhash string, isexit bool) {
 			log.Errorf("Error encountered when decoding long poll: %s / %s",
 				err.Error(), string(buff.Bytes()))
 			r.Body.Close()
+		retryy:
+			url := fmt.Sprintf("%s/upload?port=%d&protocol=%d&keyhash=%s&exit=%d",
+				DIRADDR,
+				port, PROTVER, keyhash, ieflag)
+			log.Debug("Now of retry....")
+			_, e := http.Get(url)
+			log.Debug(url)
+			if e != nil {
+				log.Errorf("Error encountered in info upload: %s", e.Error())
+				goto retryy
+			}
 			continue
 		}
 	}
