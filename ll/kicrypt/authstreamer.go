@@ -112,8 +112,8 @@ func AS_aes128_ctr(key []byte) AuthStreamer {
 	return AuthStreamer(toret)
 }
 
-func AS_blowfish128_ofb(key []byte) AuthStreamer {
-	cryptkey := hash_keyed(key, "cryptkey")[:16]
+func AS_blowfish448_ofb(key []byte) AuthStreamer {
+	cryptkey := hash_keyed(key, "cryptkey")[:56]
 	hashkey := hash_keyed(key, "hashkey")
 	streamstate := fastBF_NewOFB(cryptkey)
 	truestate := cipher.Stream(streamstate)
