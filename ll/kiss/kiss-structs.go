@@ -2,7 +2,7 @@
 package kiss
 
 import "encoding/binary"
-import big "github.com/ncw/gmp"
+import "math/big"
 
 import "io"
 import "fmt"

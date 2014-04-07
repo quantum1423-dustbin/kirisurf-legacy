@@ -4,8 +4,8 @@ package kicrypt
 import (
 	"crypto/rand"
 	"encoding/pem"
-	big "github.com/ncw/gmp"
 	"io/ioutil"
+	"math/big"
 )
 
 var GROUP14 = func() *big.Int {

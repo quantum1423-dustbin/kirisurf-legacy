@@ -78,6 +78,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	// Obtain a connection ID
 	connid := <-ctx.connid_chan
 	ch := make(chan e2e_segment, 256)
+	ctr := 0
 	// Attach onto channel table
 	ctx.lock.Lock()
 	ctx.chan_table[connid] = ch
@@ -117,8 +118,9 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 				log.Debug("Cannot into writings to client")
 				return
 			}
+			ctr = (ctr + 1) % 256
 			// If wire of empty, sendings of sendmore
-			if len(ch) == 0 {
+			if ctr == 0 {
 				err = ctx.wire.Send(e2e_segment{E2E_SENDMORE, connid, []byte("")})
 				if err != nil {
 					panic(err.Error())

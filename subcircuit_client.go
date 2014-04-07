@@ -2,10 +2,10 @@ package main
 
 import (
 	"crypto/subtle"
-	big "github.com/ncw/gmp"
 	"io"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
+	"math/big"
 	"net"
 
 	"github.com/coreos/go-log/log"

@@ -14,7 +14,7 @@ var ctx_buffer = make(chan e2e_client_ctx, 9)
 
 func enfreshen_scb() {
 	log.Alert("Enfreshen!")
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 5; i++ {
 		go func() {
 		retry:
 			log.Alert("Enfreshen!")
@@ -49,7 +49,7 @@ func run_client_loop() {
 			return get_ctx()
 		}
 		ctx_buffer <- toret
-		if rand.Int()%20 == 0 {
+		if rand.Int()%200 == 0 {
 			log.Debug("MARKING AS DYING")
 			*toret.dying = true
 			return get_ctx()

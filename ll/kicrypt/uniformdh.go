@@ -3,7 +3,7 @@ package kicrypt
 
 import (
 	"crypto/rand"
-	big "github.com/ncw/gmp"
+	"math/big"
 )
 
 var GROUP5 = func() *big.Int {
