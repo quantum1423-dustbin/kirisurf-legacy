@@ -14,7 +14,7 @@ import (
 	"unsafe"
 )
 
-// #cgo LDFLAGS: libtomcrypt.a
+// #cgo LDFLAGS: libtomcrypt.amd64.a
 // #cgo CFLAGS: -I ./tomcrypt_headers
 // #include "./tomcrypt_headers/tomcrypt.h"
 import "C"
