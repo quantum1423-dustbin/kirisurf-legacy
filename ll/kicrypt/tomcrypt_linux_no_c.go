@@ -29,7 +29,8 @@ func fastAES_GCM(rwkey []byte) cipher.AEAD {
 
 func fastHMAC(msg, key []byte) []byte {
 	h := hmac.New(sha512.New, key)
-	return h.Sum(msg)
+	h.Write(msg)
+	return h.Sum(nil)
 }
 
 func fastAES_initialize(aaa ...interface{}) cipher.Block {
@@ -38,4 +39,8 @@ func fastAES_initialize(aaa ...interface{}) cipher.Block {
 
 func fastBF_NewOFB(aaa ...interface{}) cipher.Stream {
 	panic("Not supposed to be called -_-")
+}
+
+func init() {
+	panic("NoC implementation NOT DONE YET!")
 }

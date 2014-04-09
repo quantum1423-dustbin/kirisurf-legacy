@@ -14,7 +14,8 @@ var ctx_buffer = make(chan e2e_client_ctx, 9)
 
 func enfreshen_scb() {
 	log.Alert("Enfreshen!")
-	for i := 0; i < 1; i++ {
+	ctr := 0.0
+	for i := 0; i < 5; i++ {
 		go func() {
 		retry:
 			log.Alert("Enfreshen!")
@@ -25,13 +26,17 @@ func enfreshen_scb() {
 				goto retry
 			}
 			ctx_buffer <- make_e2e_client_ctx(thing.wire)
+			ctr = ctr + 0.1
+			set_gui_progress(ctr)
 		}()
 	}
 	log.Alert("Freshened!")
 }
 
 func run_client_loop() {
+	set_gui_progress(0.0)
 	enfreshen_scb()
+	set_gui_progress(0.100)
 	// Round robin, basically
 	var get_ctx func() e2e_client_ctx
 	get_ctx = func() e2e_client_ctx {

@@ -1,5 +1,3 @@
-// +build linux,386
-
 package kicrypt
 
 import (
@@ -105,7 +103,7 @@ func unsafe_bytes(bts []byte) *C.uchar {
 type fastGCMState []byte
 
 func (state fastGCMState) NonceSize() int {
-	return 16
+	return 12
 }
 
 func (state fastGCMState) Overhead() int {
@@ -117,7 +115,7 @@ func (state fastGCMState) Seal(dst, nonce, plaintext, data []byte) []byte {
 	rawenc := make([]byte, len(plaintext))
 	sched := (*_Ctype_gcm_state)(unsafe.Pointer(&state[0]))
 	FASSERT(C.gcm_reset(sched) == C.CRYPT_OK)
-	FASSERT(C.gcm_add_iv(sched, unsafe_bytes(nonce), 16) == C.CRYPT_OK)
+	FASSERT(C.gcm_add_iv(sched, unsafe_bytes(nonce), 12) == C.CRYPT_OK)
 	C.gcm_add_aad(sched, nil, 0)
 	FASSERT(C.gcm_process(sched, unsafe_bytes(plaintext), C.ulong(len(plaintext)),
 		unsafe_bytes(rawenc), C.GCM_ENCRYPT) == C.CRYPT_OK)
@@ -133,7 +131,7 @@ func (state fastGCMState) Open(dst, nonce, ciphertext, data []byte) ([]byte, err
 	rawpt := make([]byte, len(ciphertext)-16)
 	sched := (*_Ctype_gcm_state)(unsafe.Pointer(&state[0]))
 	FASSERT(C.gcm_reset(sched) == C.CRYPT_OK)
-	FASSERT(C.gcm_add_iv(sched, unsafe_bytes(nonce), 16) == C.CRYPT_OK)
+	FASSERT(C.gcm_add_iv(sched, unsafe_bytes(nonce), 12) == C.CRYPT_OK)
 	FASSERT(C.gcm_add_aad(sched, nil, 0) == C.CRYPT_OK)
 	FASSERT(C.gcm_process(sched, unsafe_bytes(rawpt), C.ulong(len(rawpt)),
 		unsafe_bytes(ciphertext), C.GCM_DECRYPT) == C.CRYPT_OK)
