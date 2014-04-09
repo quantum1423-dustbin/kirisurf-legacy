@@ -1,4 +1,5 @@
-// libkiricrypt project libkiricrypt.go
+// +build linux,386
+
 package kicrypt
 
 import (
