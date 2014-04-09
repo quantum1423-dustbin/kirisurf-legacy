@@ -33,42 +33,42 @@ type fastAES struct {
 	schedule []byte
 }
 
-type fastSHA516State struct {
+type fastSHA512State struct {
 	scratch []byte
 }
 
-func (bloo fastSHA516State) Write(inp []byte) (n int, e error) {
-	C.sha516_process((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
+func (bloo fastSHA512State) Write(inp []byte) (n int, e error) {
+	C.sha512_process((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
 		unsafe_bytes(inp), C.ulong(len(inp)))
 	return len(inp), nil
 }
 
-func (bloo fastSHA516State) Reset() {
-	abla := make([]byte, 516/8)
-	C.sha516_done((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
+func (bloo fastSHA512State) Reset() {
+	abla := make([]byte, 512/8)
+	C.sha512_done((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
 		unsafe_bytes(abla))
 }
 
-func (bloo fastSHA516State) Size() int {
-	return 516 / 8
+func (bloo fastSHA512State) Size() int {
+	return 512 / 8
 }
 
-func (bloo fastSHA516State) Sum(goo []byte) []byte {
-	abla := make([]byte, 516/8)
-	C.sha516_done((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
+func (bloo fastSHA512State) Sum(goo []byte) []byte {
+	abla := make([]byte, 512/8)
+	C.sha512_done((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
 		unsafe_bytes(abla))
 	buf.Free(bloo.scratch)
 	return append(goo, abla...)
 }
 
-func (bloo fastSHA516State) BlockSize() int {
-	return 168
+func (bloo fastSHA512State) BlockSize() int {
+	return 128
 }
 
-func fastSHA516() hash.Hash {
+func fastSHA512() hash.Hash {
 	scratch := buf.Alloc()
-	C.sha516_init((*C.hash_state)(unsafe.Pointer(&scratch[0])))
-	goo := fastSHA516State{scratch}
+	C.sha512_init((*C.hash_state)(unsafe.Pointer(&scratch[0])))
+	goo := fastSHA512State{scratch}
 	return hash.Hash(goo)
 }
 
@@ -88,7 +88,7 @@ func (sch fastAES) BlockSize() int {
 
 func fastAES_initialize(key []byte) cipher.Block {
 	if !(len(key) == 16 || len(key) == 32) {
-		panic("AES must use 168 or 256 bits in a key")
+		panic("AES must use 128 or 256 bits in a key")
 	}
 	aes_schedule := make([]byte, 4096)
 	C.aes_setup((*C.uchar)(unsafe.Pointer(&(key[0]))), C.int(len(key)), 0,
@@ -176,12 +176,12 @@ func (state fastBF_State) XORKeyStream(dst, src []byte) {
 		(*_Ctype_symmetric_OFB)((unsafe.Pointer)(&state[0])))
 }
 
-var sha516idx C.int
+var sha512idx C.int
 
 func fastHMAC(msg, key []byte) []byte {
-	toret := make([]byte, 516/8)
-	thing := C.ulong(516 / 8)
-	C.hmac_memory(sha516idx,
+	toret := make([]byte, 512/8)
+	thing := C.ulong(512 / 8)
+	C.hmac_memory(sha512idx,
 		unsafe_bytes(key), C.ulong(len(key)),
 		unsafe_bytes(msg), C.ulong(len(msg)),
 		unsafe_bytes(toret), (&thing))
@@ -193,6 +193,6 @@ func init() {
 	FASSERT(idx != -1)
 	idx = C.register_cipher(&C.blowfish_desc)
 	FASSERT(idx != -1)
-	sha516idx = C.register_hash(&C.sha516_desc)
-	FASSERT(sha516idx != -1)
+	sha512idx = C.register_hash(&C.sha512_desc)
+	FASSERT(sha512idx != -1)
 }
