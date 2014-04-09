@@ -15,7 +15,6 @@ func recv(buf []byte, m int, conn net.Conn) (n int, err error) {
 		nn, err = conn.Read(buf[n:m])
 		if nil != err && io.EOF != err {
 			panic(err)
-			return
 		}
 		n += nn
 	}

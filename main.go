@@ -28,7 +28,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {
 		go socks5proxy()
-		bigserve := NewSCServer(MasterConfig.General.ORAddr)
+		NewSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
 		dirclient.RunRelay(prt, MasterKeyHash,
@@ -36,7 +36,6 @@ func main() {
 		for {
 			time.Sleep(time.Second)
 		}
-		bigserve.Kill()
 	} else if MasterConfig.General.Role == "client" {
 		run_client_loop()
 	}
