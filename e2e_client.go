@@ -5,8 +5,6 @@ import (
 	"io"
 	"sync"
 	"sync/atomic"
-
-	"github.com/coreos/go-log/log"
 )
 
 type e2e_client_ctx struct {
@@ -62,7 +60,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	defer func() {
 		atomic.AddInt32(ctx.refcount, -1)
 		if *ctx.refcount == 0 && *ctx.dying {
-			log.Debug("Refcount down and dying!!!!!")
+			DEBUG("Killing a subcircuit context due to refcount")
 			*ctx.valid = false
 			ctx.lock.RLock()
 			for _, e := range ctx.chan_table {
@@ -83,7 +81,6 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	ctx.lock.Lock()
 	ctx.chan_table[connid] = ch
 	ctx.lock.Unlock()
-	log.Debug("Chantab attached")
 	// Detach function
 	var once sync.Once
 	detach := func() {
@@ -101,26 +98,24 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 		for {
 			if !*ctx.valid {
 				ctx.wire.destroy()
-				log.Debug("Dying since ctx not valid")
 				return
 			}
 			pkt, ok := <-ch
 			if !ok {
-				log.Debug("Returning since ch closed")
 				return
 			}
 			if pkt.Flag == E2E_CLOSE {
-				log.Debug("E2E_CLOSE")
 				return
 			}
-			_, err := client.Write(pkt.Body)
+			n, err := client.Write(pkt.Body)
 			if err != nil {
-				log.Debug("Cannot into writings to client")
 				return
 			}
+			incr_down_bytes(n)
 			ctr = (ctr + 1) % 256
 			// If wire of empty, sendings of sendmore
 			if ctr == 0 {
+				DEBUG("Bucket drained in subcircuit, sending SENDMORE to remote")
 				err = ctx.wire.Send(e2e_segment{E2E_SENDMORE, connid, []byte("")})
 				if err != nil {
 					panic(err.Error())
@@ -128,7 +123,6 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 			}
 		}
 	}()
-	log.Debug("Ds starteda")
 	defer client.Close()
 	defer detach()
 	// Upstream
@@ -137,14 +131,9 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 	if err != nil {
 		panic(err.Error())
 	}
-	/*for {
-		log.Debug("WTFWTF")
-		ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
-	}*/
-	log.Debug("Open sent")
 	for {
 		if !*ctx.valid {
-			log.Debug("Dying since ctx not valid!!!")
+			DEBUG("Dying since ctx not valid!!!")
 			return
 		}
 		buf := make([]byte, 16384)
@@ -152,7 +141,7 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 		if err != nil {
 			err := ctx.wire.Send(e2e_segment{E2E_CLOSE, connid, []byte("")})
 			if err != nil {
-				log.Debug("Dying since cannot into sendings.", err.Error())
+				DEBUG("Dying since cannot into sendings: %s", err.Error())
 				*ctx.valid = false
 				ctx.wire.destroy()
 			}
@@ -160,10 +149,11 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 		}
 		err = ctx.wire.Send(e2e_segment{E2E_DATA, connid, buf[:n]})
 		if err != nil {
-			log.Debug("Dying since cannot into sendings.", err.Error())
+			DEBUG("Dying since cannot into sendings: %s", err.Error())
 			*ctx.valid = false
 			ctx.wire.destroy()
 			return
 		}
+		incr_up_bytes(n)
 	}
 }

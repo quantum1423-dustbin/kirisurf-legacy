@@ -7,8 +7,6 @@ import (
 	"kirisurf/ll/kiss"
 	"math/big"
 	"net"
-
-	"github.com/coreos/go-log/log"
 )
 
 type Subcircuit struct {
@@ -17,14 +15,12 @@ type Subcircuit struct {
 }
 
 func build_subcircuit() (*Subcircuit, error) {
-	log.Debug("Into buildings sc")
 	slc := dirclient.FindPath(MasterConfig.Network.MinCircuitLen)
-	log.Debug(slc)
+	DEBUG("Building a subcicruit with minlen %d...", len(slc))
 	// this returns a checker whether a public key is valid
 	pubkey_checker := func(hsh string) kiss.Verifier {
 		return func(k *big.Int) bool {
 			hashed := hash_base32(k.Bytes())
-			log.Debugf("Comparing %s with %s", hsh, hashed)
 			return subtle.ConstantTimeCompare([]byte(hashed), []byte(hsh)) == 1
 		}
 	}
@@ -45,10 +41,9 @@ func build_subcircuit() (*Subcircuit, error) {
 		return nil, err
 	}
 	for idx, ele := range slc[1:] {
-		log.Debug(idx)
+		DEBUG("Extending circuit to length %d...", idx+2)
 		// extend wire
 		err = write_sc_message(sc_message{SC_EXTEND, ele.PublicKey}, wire)
-		log.Debug(ele.PublicKey)
 		if err != nil {
 			wire.Close()
 			return nil, err
@@ -61,13 +56,13 @@ func build_subcircuit() (*Subcircuit, error) {
 			//wire.Close()
 			return nil, err
 		}
-		log.Debug("Of connected into sc %d", idx)
+		DEBUG("Extended circuit to length %d", idx+2)
 	}
 	err = write_sc_message(sc_message{SC_TERMINATE, ""}, wire)
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("Yay subcircuit connectings of dones.")
+	DEBUG("Subcircuit building complete with length %d", len(slc))
 	toret := Subcircuit{slc, wire}
 	return &toret, nil
 }

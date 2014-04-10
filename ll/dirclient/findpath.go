@@ -2,7 +2,6 @@
 package dirclient
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -25,7 +24,6 @@ func FindPath(minlen int) []KNode {
 	//history := make(map[int]bool)
 	endptr := 0
 	for {
-		fmt.Println("Wtfwtf")
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
 		if endptr+1 >= minlen && toret[endptr].ExitNode {

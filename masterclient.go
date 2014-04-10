@@ -6,31 +6,29 @@ import (
 	"math/rand"
 	"net"
 	"runtime"
-
-	"github.com/coreos/go-log/log"
 )
 
 var ctx_buffer = make(chan e2e_client_ctx, 9)
 
 func enfreshen_scb() {
-	log.Alert("Enfreshen!")
 	ctr := 0.0
 	for i := 0; i < 5; i++ {
+		i := i
 		go func() {
+			INFO("Building initial subcircuit #%d...", i)
 		retry:
-			log.Alert("Enfreshen!")
 			thing, err := build_subcircuit()
 			if err != nil {
-				log.Debug(err.Error())
+				WARNING("Building of initial subcircuit #%d encountered trouble (%s), retrying...", i, err.Error())
 				dirclient.RefreshDirectory()
 				goto retry
 			}
+			INFO("Building of initial subcircuit %d done, pushing into buffer...", i)
 			ctx_buffer <- make_e2e_client_ctx(thing.wire)
 			ctr = ctr + 0.1
 			set_gui_progress(ctr)
 		}()
 	}
-	log.Alert("Freshened!")
 }
 
 func run_client_loop() {
@@ -42,21 +40,21 @@ func run_client_loop() {
 	get_ctx = func() e2e_client_ctx {
 		toret := <-ctx_buffer
 		if !*toret.valid || *toret.dying {
-			log.Debug("BUFFERED CTX NOT VALID")
+			DEBUG("Encountered dead subcircuit in buffer, throwing away")
 			go func() {
 			retry:
-				log.Alert("Enfreshen!")
 				thing, err := build_subcircuit()
 				if err != nil {
 					goto retry
 				}
+				DEBUG("Queuing a new live subcircuit to buffer...")
 				ctx_buffer <- make_e2e_client_ctx(thing.wire)
 			}()
 			return get_ctx()
 		}
 		ctx_buffer <- toret
-		if rand.Int()%200 == 0 {
-			log.Debug("MARKING AS DYING")
+		if rand.Int()%50 == 0 {
+			DEBUG("Subcircuit lottery hit, marking as dead...")
 			*toret.dying = true
 			return get_ctx()
 		}
@@ -69,9 +67,8 @@ func run_client_loop() {
 	}
 	for {
 		nconn, err := listener.Accept()
-		log.Debug("Accepted client with address: ", nconn.RemoteAddr())
 		if err != nil {
-			log.Debug("Error while accepting: ", err.Error())
+			WARNING("Problem accepting client socket: %s", err.Error())
 			continue
 		}
 		go get_ctx().AttachClient(nconn)
@@ -86,7 +83,7 @@ func run_diagnostic_loop() {
 	for {
 		nconn, err := listener.Accept()
 		if err != nil {
-			log.Debug("Error while accepting: ", err.Error())
+			WARNING("Problem while accepting stacktrace diag socket: %s", err.Error())
 			continue
 		}
 		go func() {

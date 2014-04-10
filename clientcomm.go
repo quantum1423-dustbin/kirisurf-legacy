@@ -18,6 +18,22 @@ func set_gui_progress(frac float64) {
 	}
 }
 
+func incr_down_bytes(delta int) {
+	msg := []byte(fmt.Sprintf("(incr-download %d)\n", delta))
+	select {
+	case global_monitor_chan <- msg:
+	default:
+	}
+}
+
+func incr_up_bytes(delta int) {
+	msg := []byte(fmt.Sprintf("(incr-upload %d)\n", delta))
+	select {
+	case global_monitor_chan <- msg:
+	default:
+	}
+}
+
 func run_monitor_loop() {
 	listener, err := net.Listen("tcp", "127.0.0.1:9221")
 	if err != nil {

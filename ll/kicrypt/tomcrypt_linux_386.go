@@ -156,11 +156,11 @@ func fastAES_GCM(rwkey []byte) fastGCMState {
 	return fastGCMState(state)
 }
 
-type fastBF_State []byte
+type fastTF_State []byte
 
-func fastBF_NewOFB(key []byte) fastBF_State {
-	idx := C.find_cipher(C.CString("blowfish"))
-	iv := make([]byte, 8)
+func fastTF_NewOFB(key []byte) fastTF_State {
+	idx := C.find_cipher(C.CString("twofish"))
+	iv := make([]byte, 16)
 	state := make([]byte, 65536)
 	FASSERT(C.ofb_start(idx,
 		unsafe_bytes(iv),
@@ -170,7 +170,7 @@ func fastBF_NewOFB(key []byte) fastBF_State {
 	return state
 }
 
-func (state fastBF_State) XORKeyStream(dst, src []byte) {
+func (state fastTF_State) XORKeyStream(dst, src []byte) {
 	C.ofb_encrypt(unsafe_bytes(src), unsafe_bytes(dst), C.ulong(len(src)),
 		(*_Ctype_symmetric_OFB)((unsafe.Pointer)(&state[0])))
 }
@@ -190,7 +190,7 @@ func fastHMAC(msg, key []byte) []byte {
 func init() {
 	idx := C.register_cipher(&C.aes_desc)
 	FASSERT(idx != -1)
-	idx = C.register_cipher(&C.blowfish_desc)
+	idx = C.register_cipher(&C.twofish_desc)
 	FASSERT(idx != -1)
 	sha512idx = C.register_hash(&C.sha512_desc)
 	FASSERT(sha512idx != -1)

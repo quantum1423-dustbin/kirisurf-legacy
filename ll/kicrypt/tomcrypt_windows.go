@@ -190,8 +190,6 @@ func fastHMAC(msg, key []byte) []byte {
 func init() {
 	idx := C.register_cipher(&C.aes_desc)
 	FASSERT(idx != -1)
-	idx = C.register_cipher(&C.blowfish_desc)
-	FASSERT(idx != -1)
 	sha512idx = C.register_hash(&C.sha512_desc)
 	FASSERT(sha512idx != -1)
 }
