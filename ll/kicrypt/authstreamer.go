@@ -112,7 +112,7 @@ func AS_aes128_ctr(key []byte) AuthStreamer {
 	return AuthStreamer(toret)
 }
 
-func AS_twofish256_ofb(key []byte) AuthStreamer {
+func AS_aes256_ofb(key []byte) AuthStreamer {
 	cryptkey := hash_keyed(key, "cryptkey")[:32]
 	hashkey := hash_keyed(key, "hashkey")
 	streamstate := fastTF_NewOFB(cryptkey)

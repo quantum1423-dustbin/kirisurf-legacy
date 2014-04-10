@@ -156,10 +156,10 @@ func fastAES_GCM(rwkey []byte) fastGCMState {
 	return fastGCMState(state)
 }
 
-type fastBF_State []byte
+type fastTF_State []byte
 
-func fastBF_NewOFB(key []byte) fastBF_State {
-	idx := C.find_cipher(C.CString("blowfish"))
+func fastTF_NewOFB(key []byte) fastTF_State {
+	idx := C.find_cipher(C.CString("aes"))
 	iv := make([]byte, 8)
 	state := make([]byte, 65536)
 	FASSERT(C.ofb_start(idx,
@@ -170,7 +170,7 @@ func fastBF_NewOFB(key []byte) fastBF_State {
 	return state
 }
 
-func (state fastBF_State) XORKeyStream(dst, src []byte) {
+func (state fastTF_State) XORKeyStream(dst, src []byte) {
 	C.ofb_encrypt(unsafe_bytes(src), unsafe_bytes(dst), C.ulong(len(src)),
 		(*_Ctype_symmetric_OFB)((unsafe.Pointer)(&state[0])))
 }

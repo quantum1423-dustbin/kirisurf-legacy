@@ -19,7 +19,7 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 func main() {
 	go run_monitor_loop()
 	go run_diagnostic_loop()
-	kiss.SetCipher(kicrypt.AS_twofish256_ofb)
+	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	dirclient.DIRADDR = MasterConfig.General.DirectoryURL
 	INFO("Kirisurf started!")
 	dirclient.RefreshDirectory()

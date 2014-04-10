@@ -159,7 +159,7 @@ func fastAES_GCM(rwkey []byte) fastGCMState {
 type fastTF_State []byte
 
 func fastTF_NewOFB(key []byte) fastTF_State {
-	idx := C.find_cipher(C.CString("twofish"))
+	idx := C.find_cipher(C.CString("aes"))
 	iv := make([]byte, 16)
 	state := make([]byte, 65536)
 	FASSERT(C.ofb_start(idx,
@@ -189,8 +189,6 @@ func fastHMAC(msg, key []byte) []byte {
 
 func init() {
 	idx := C.register_cipher(&C.aes_desc)
-	FASSERT(idx != -1)
-	idx = C.register_cipher(&C.twofish_desc)
 	FASSERT(idx != -1)
 	sha512idx = C.register_hash(&C.sha512_desc)
 	FASSERT(sha512idx != -1)
