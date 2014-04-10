@@ -21,7 +21,7 @@ func main() {
 	go run_diagnostic_loop()
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	dirclient.DIRADDR = MasterConfig.General.DirectoryURL
-	INFO("Kirisurf started!")
+	INFO("Kirisurf started! CPU count: %d", runtime.NumCPU())
 	dirclient.RefreshDirectory()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {

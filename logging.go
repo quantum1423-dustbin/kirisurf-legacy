@@ -21,7 +21,7 @@ func __write_log(level string, format string, args ...interface{}) {
 	defer __log_lock.Unlock()
 	msg := fmt.Sprintf(format, args...)
 	now := time.Now()
-	const layout = "MST 2006/01/02 03:04:05"
+	const layout = "MST 2006/01/02 15:04:05"
 	nowstring := now.Format(layout)
 	fmt.Printf("#%d\t%s >>> %s ::: %s\n", __log_counter, nowstring, level, msg)
 	__log_counter++
