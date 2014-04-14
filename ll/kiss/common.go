@@ -128,7 +128,7 @@ func check_fatal(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "**** KURWA!!! ****\n")
 		fmt.Fprintf(os.Stderr, "Error encountered was of FATAL. Is of wrong. Gib correct config pl0x.\n")
-		panic(err.Error())
+		panic(err)
 	}
 }
 

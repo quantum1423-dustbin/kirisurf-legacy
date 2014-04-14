@@ -17,15 +17,14 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
 func main() {
+	kiss.SetCipher(kicrypt.AS_aes256_ofb)
+	INFO("Kirisurf started! CPU count: %d", runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	go run_monitor_loop()
 	go run_diagnostic_loop()
-	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	dirclient.DIRADDR = MasterConfig.General.DirectoryURL
-	INFO("Kirisurf started! CPU count: %d", runtime.NumCPU())
 	dirclient.RefreshDirectory()
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	if MasterConfig.General.Role == "server" {
-		go socks5proxy()
 		NewSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])

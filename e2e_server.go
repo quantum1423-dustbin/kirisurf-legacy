@@ -3,11 +3,8 @@ package main
 
 import (
 	"net"
-	"runtime/debug"
 	"sync"
 	"time"
-
-	"github.com/coreos/go-log/log"
 )
 
 // e2e server handler. Subcircuit calls this.
@@ -26,12 +23,12 @@ func e2e_server_handler(wire *gobwire) {
 	global_die := func() {
 		once.Do(func() {
 			IAMDEAD = true
-			log.Debug("global_die() called!")
-			log.Debug("signalling KILLSWITCH")
+			DEBUG("global_die() called on %p!", wire)
+			DEBUG("signalling KILLSWITCH on %p!", wire)
 			close(KILLSWITCH)
-			log.Debug("sleeping 1 second to prevent race...")
+			DEBUG("sleeping 1 second on %p to prevent race...", wire)
 			time.Sleep(time.Second)
-			log.Debug("destroying global objects...")
+			DEBUG("destroying global objects for %p...", wire)
 			close(gupstream)
 			close(gdownstream)
 			wire.destroy()
@@ -40,19 +37,12 @@ func e2e_server_handler(wire *gobwire) {
 					close(ch)
 				}
 			}
-			log.Debug("chantable closed")
-			chantable = nil
-			log.Debug("chantable nilled")
 			for _, cn := range conntable {
 				if cn != nil {
 					cn.Close()
 				}
 			}
-			log.Debug("conntable closed")
-			conntable = nil
-			log.Debug("conntable nilled")
-			log.Debug("collecting garbage and exiting...")
-			debug.FreeOSMemory()
+			DEBUG("exiting from %p...", wire)
 		})
 	}
 
@@ -62,14 +52,11 @@ func e2e_server_handler(wire *gobwire) {
 		for {
 			newpkt, ok := <-gdownstream
 			if !ok {
-				log.Debug("gdownstream got not ok, dying")
 				global_die()
 				return
 			}
 			err := wire.Send(newpkt)
 			if err != nil {
-				log.Debug("gdownstream send error: ", err.Error())
-				log.Debug("gdownstream dying")
 				global_die()
 				return
 			}
@@ -80,7 +67,6 @@ func e2e_server_handler(wire *gobwire) {
 		for {
 			newpkt, err := wire.Receive()
 			if err != nil {
-				log.Debug("gupstream receive error, closing")
 				global_die()
 				return
 			}
@@ -91,20 +77,20 @@ func e2e_server_handler(wire *gobwire) {
 	for {
 		select {
 		case <-KILLSWITCH:
-			log.Debug("KILLSWITCH received in main loop, returning")
+			DEBUG("KILLSWITCH received in main loop for %p, returning", wire)
 			return
 		case thing, ok := <-gupstream:
 			if !ok {
-				log.Debug("gupstream not of okays, dying")
+				DEBUG("gupstream not of okays, dying (%p)", wire)
 				global_die()
 				return
 			}
 			if thing.Flag == E2E_OPEN {
 				connid := thing.Connid
-				log.Debugf("E2E_OPEN(%d)", connid)
 				chantable[connid] = make(chan e2e_segment, 16)
 				go func() {
-					conn, err := net.DialTimeout("tcp", SOCKSADDR, time.Second*20)
+					DEBUG("Connection request to %s (%p)", string(thing.Body), wire)
+					conn, err := net.DialTimeout("tcp", string(thing.Body), time.Second*20)
 					closepak := e2e_segment{E2E_CLOSE, connid, []byte("")}
 					defer func() {
 						if !IAMDEAD {
@@ -116,7 +102,7 @@ func e2e_server_handler(wire *gobwire) {
 					ch := chantable[connid]
 					tablock.Unlock()
 					if err != nil {
-						log.Debug("Error encountered in remote: ", err.Error())
+						DEBUG("Error encountered in remote (%p): %s", wire, err.Error())
 						return
 					}
 					defer conn.Close()
@@ -127,6 +113,12 @@ func e2e_server_handler(wire *gobwire) {
 						tokenbucket <- true
 					}
 					hardtb := make(chan bool, 256) // Hard tb for sendme coordination
+					for i := 0; i < 256; i++ {
+						select {
+						case hardtb <- true:
+						default:
+						}
+					}
 					go func() {
 						for {
 							select {
@@ -145,7 +137,7 @@ func e2e_server_handler(wire *gobwire) {
 							buf := make([]byte, 4096)
 							select {
 							case <-KILLSWITCH:
-								log.Debug("KILLSWITCH signalled on remote downstr!")
+								DEBUG("KILLSWITCH signalled on remote downstr! (%p)", wire)
 								return
 							default:
 								// Obtain token
@@ -153,7 +145,6 @@ func e2e_server_handler(wire *gobwire) {
 								<-tokenbucket
 								n, err := conn.Read(buf)
 								if err != nil {
-									log.Debug("Received error from remote")
 									return
 								}
 								ah := make([]byte, n)
@@ -167,19 +158,17 @@ func e2e_server_handler(wire *gobwire) {
 					for {
 						select {
 						case <-KILLSWITCH:
-							log.Debug("KILLSWITCH signalled on remote conn!")
+							DEBUG("KILLSWITCH signalled on remote conn! (%p)", wire)
 							return
 						case newthing, ok := <-ch:
 							if !ok {
-								log.Debug("connection chan closed!")
 								return
 							}
 							if newthing.Flag == E2E_CLOSE {
-								log.Debug("E2E_CLOSE received")
 								return
 							}
 							if newthing.Flag == E2E_SENDMORE {
-								log.Debug("Send more...")
+								DEBUG("Sending more for [%p]:%d", wire, connid)
 								for i := 0; i < 256; i++ {
 									select {
 									case hardtb <- true:
@@ -189,7 +178,7 @@ func e2e_server_handler(wire *gobwire) {
 							}
 							_, err := conn.Write(newthing.Body)
 							if err != nil {
-								log.Debug("Error while writing to remote: ", err.Error())
+								DEBUG("Error while writing to remote (%p): %s", wire, err.Error())
 								return
 							}
 						}
@@ -201,7 +190,6 @@ func e2e_server_handler(wire *gobwire) {
 				tablock.RUnlock()
 				ch <- thing
 			} else {
-				log.Debug("Weird, weird, weird segment received!")
 				global_die()
 				return
 			}

@@ -53,8 +53,10 @@ func make_e2e_client_ctx(conn io.ReadWriteCloser) e2e_client_ctx {
 }
 
 func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
+	defer client.Close()
 	if !*ctx.valid {
-		panic("Context already invalid!")
+		CRITICAL("Possible race condition: AttachClient called on invalid wire!")
+		return
 	}
 	atomic.AddInt32(ctx.refcount, 1)
 	defer func() {
@@ -71,6 +73,18 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 			ctx.lock.RUnlock()
 			ctx.wire.destroy()
 		}
+	}()
+
+	// SOCKS5 stuff! Yay!
+	remaddr, err := socks5_handshake(client)
+	if err != nil {
+		WARNING("Error encountered while doing socks5: %s", err.Error())
+		return
+	}
+	DEBUG("SOCKS5 request to %s", remaddr)
+
+	defer func() {
+		DEBUG("Closed connection to %s", remaddr)
 	}()
 
 	// Obtain a connection ID
@@ -123,13 +137,12 @@ func (ctx e2e_client_ctx) AttachClient(client io.ReadWriteCloser) {
 			}
 		}
 	}()
-	defer client.Close()
 	defer detach()
 	// Upstream
-	err := ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte("")})
-	err = ctx.wire.Send(e2e_segment{E2E_SENDMORE, connid, []byte("")})
+	err = ctx.wire.Send(e2e_segment{E2E_OPEN, connid, []byte(remaddr)})
 	if err != nil {
-		panic(err.Error())
+		CRITICAL(err.Error())
+		return
 	}
 	for {
 		if !*ctx.valid {
