@@ -107,11 +107,6 @@ func e2e_server_handler(wire *gobwire) {
 					}
 					defer conn.Close()
 
-					// Token bucket
-					tokenbucket := make(chan bool, 1024) // 4mb grace period
-					for i := 0; i < 1000; i++ {
-						tokenbucket <- true
-					}
 					hardtb := make(chan bool, 256) // Hard tb for sendme coordination
 					for i := 0; i < 256; i++ {
 						select {
@@ -119,16 +114,6 @@ func e2e_server_handler(wire *gobwire) {
 						default:
 						}
 					}
-					go func() {
-						for {
-							select {
-							case tokenbucket <- true:
-								time.Sleep(time.Second / 10)
-							case <-KILLSWITCH:
-								return
-							}
-						}
-					}()
 
 					// Downstream
 					go func() {
@@ -142,7 +127,6 @@ func e2e_server_handler(wire *gobwire) {
 							default:
 								// Obtain token
 								<-hardtb
-								<-tokenbucket
 								n, err := conn.Read(buf)
 								if err != nil {
 									return
