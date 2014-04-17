@@ -1,9 +1,6 @@
 package main
 
-import (
-	"code.google.com/p/gcfg"
-	"github.com/coreos/go-log/log"
-)
+import "code.google.com/p/gcfg"
 
 type Config struct {
 	General struct {
@@ -22,7 +19,6 @@ var MasterConfig Config
 
 func init() {
 	err := gcfg.ReadFileInto(&MasterConfig, "kirisurf.conf")
-	log.Debug("Read configuration successfully")
 	if err != nil {
 		panic(err.Error())
 	}

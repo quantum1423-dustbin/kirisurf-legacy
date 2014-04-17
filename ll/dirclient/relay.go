@@ -8,8 +8,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/coreos/go-log/log"
 )
 
 const (
@@ -30,10 +28,8 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		DIRADDR,
 		port, PROTVER, keyhash, ieflag)
 	r, e := http.Get(url)
-	log.Debug(url)
 	time.Sleep(time.Second)
 	if e != nil {
-		log.Errorf("Error encountered in info upload: %s", e.Error())
 		r.Body.Close()
 		panic("WTF")
 	}
@@ -41,16 +37,12 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		time.Sleep(time.Second)
 		r, e := http.Get(fmt.Sprintf("%s/longpoll", DIRADDR))
 		if e != nil {
-			log.Errorf("Error encountered in long poll: %s", e.Error())
 		retry:
 			url := fmt.Sprintf("%s/upload?port=%d&protocol=%d&keyhash=%s&exit=%d",
 				DIRADDR,
 				port, PROTVER, keyhash, ieflag)
-			log.Debug("Now of retry....")
 			_, e := http.Get(url)
-			log.Debug(url)
 			if e != nil {
-				log.Errorf("Error encountered in info upload: %s", e.Error())
 				goto retry
 			}
 			continue
@@ -61,18 +53,13 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		err := json.Unmarshal(buff.Bytes(), &KDirectory)
 		protector.Unlock()
 		if err != nil {
-			log.Errorf("Error encountered when decoding long poll: %s / %s",
-				err.Error(), string(buff.Bytes()))
 			r.Body.Close()
 		retryy:
 			url := fmt.Sprintf("%s/upload?port=%d&protocol=%d&keyhash=%s&exit=%d",
 				DIRADDR,
 				port, PROTVER, keyhash, ieflag)
-			log.Debug("Now of retry....")
 			_, e := http.Get(url)
-			log.Debug(url)
 			if e != nil {
-				log.Errorf("Error encountered in info upload: %s", e.Error())
 				goto retryy
 			}
 			continue

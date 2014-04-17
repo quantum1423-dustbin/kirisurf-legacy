@@ -7,8 +7,6 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
-
-	"github.com/coreos/go-log/log"
 )
 
 func sc_server_handler(wire net.Conn) error {
@@ -18,20 +16,17 @@ func sc_server_handler(wire net.Conn) error {
 		//log.Error(err.Error())
 		return err
 	}
-	log.Debug("Of dones for obfs layer")
 	awire, err := kiss.KiSS_handshake_server(owire, MasterKey)
 	if err != nil {
 		//log.Error(err.Error())
 		return err
 	}
-	log.Debug("Of dones in kiss layer")
 	// Now awire is the wire
 	cmd, err := read_sc_message(awire)
 	if err != nil {
-		log.Error(err.Error())
+		WARNING(err.Error())
 		return err
 	}
-	log.Debug(cmd)
 	if cmd.Msg_type == SC_EXTEND {
 		theirnode := dirclient.PKeyLookup(cmd.Msg_arg)
 		if theirnode == nil {
@@ -79,7 +74,7 @@ func NewSCServer(addr string) SCServer {
 				client, err := listener.Accept()
 				//log.Debug("Of acceptings client: %s", client.RemoteAddr())
 				if err != nil {
-					log.Error(err.Error())
+					CRITICAL(err.Error())
 					client.Close()
 					continue
 				}

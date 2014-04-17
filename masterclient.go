@@ -50,6 +50,8 @@ func run_client_loop() {
 			retry:
 				thing, err := build_subcircuit()
 				if err != nil {
+					WARNING("Building of non-initial subcircuit encountered trouble, retrying...")
+					dirclient.RefreshDirectory()
 					goto retry
 				}
 				DEBUG("Queuing a new live subcircuit to buffer...")

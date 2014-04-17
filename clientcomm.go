@@ -4,8 +4,6 @@ package main
 import (
 	"fmt"
 	"net"
-
-	"github.com/coreos/go-log/log"
 )
 
 var global_monitor_chan = make(chan []byte, 16)
@@ -42,7 +40,7 @@ func run_monitor_loop() {
 	for {
 		client, err := listener.Accept()
 		if err != nil {
-			log.Error(err.Error())
+			WARNING(err.Error())
 			continue
 		}
 		func() {
