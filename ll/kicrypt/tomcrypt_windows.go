@@ -35,7 +35,6 @@ func fastHMAC(msg, key []byte) []byte {
 }
 
 func init() {
-	// Test vectors
 	key, _ := hex.DecodeString("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
 	iv, _ := hex.DecodeString("B7BF3A5DF43989DD97F0FA97EBCE2F4A")
 	pt, _ := hex.DecodeString("ae2d8a571e03ac9c9eb76fac45af8e51")
