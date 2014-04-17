@@ -16,9 +16,11 @@ var MasterKey = kicrypt.SecureDH_genpair()
 var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
+var version = "NOT_A_RELEASE_VERSION"
+
 func main() {
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
-	INFO("Kirisurf started! CPU count: %d", runtime.NumCPU())
+	INFO("Kirisurf %s started! CPU count: %d", version, runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go run_monitor_loop()
 	go run_diagnostic_loop()
