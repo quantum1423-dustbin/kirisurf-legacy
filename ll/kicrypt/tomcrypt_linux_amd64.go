@@ -1,12 +1,8 @@
 package kicrypt
 
 import (
-	"crypto/cipher"
-	"crypto/subtle"
-	"errors"
+	"encoding/hex"
 	"fmt"
-	"hash"
-	"kirisurf/ll/buf"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -18,6 +14,12 @@ import (
 // #include "./tomcrypt_headers/tomcrypt.h"
 import "C"
 
+func unsafe_bytes(bts []byte) *C.uchar {
+	return (*C.uchar)(unsafe.Pointer(&bts[0]))
+}
+
+type fastTF_State []byte
+
 func FASSERT(cond bool) {
 	_, file, line, _ := runtime.Caller(1)
 	if !cond {
@@ -28,139 +30,8 @@ func FASSERT(cond bool) {
 	}
 }
 
-type fastAES struct {
-	schedule []byte
-}
-
-type fastSHA512State struct {
-	scratch []byte
-}
-
-func (bloo fastSHA512State) Write(inp []byte) (n int, e error) {
-	C.sha512_process((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
-		unsafe_bytes(inp), C.ulong(len(inp)))
-	return len(inp), nil
-}
-
-func (bloo fastSHA512State) Reset() {
-	abla := make([]byte, 512/8)
-	C.sha512_done((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
-		unsafe_bytes(abla))
-}
-
-func (bloo fastSHA512State) Size() int {
-	return 512 / 8
-}
-
-func (bloo fastSHA512State) Sum(goo []byte) []byte {
-	abla := make([]byte, 512/8)
-	C.sha512_done((*C.hash_state)(unsafe.Pointer(&bloo.scratch[0])),
-		unsafe_bytes(abla))
-	buf.Free(bloo.scratch)
-	return append(goo, abla...)
-}
-
-func (bloo fastSHA512State) BlockSize() int {
-	return 128
-}
-
-func fastSHA512() hash.Hash {
-	scratch := buf.Alloc()
-	C.sha512_init((*C.hash_state)(unsafe.Pointer(&scratch[0])))
-	goo := fastSHA512State{scratch}
-	return hash.Hash(goo)
-}
-
-func (sch fastAES) Encrypt(dst, src []byte) {
-	C.aes_ecb_encrypt(unsafe_bytes(src), unsafe_bytes(dst),
-		(*C.symmetric_key)(unsafe.Pointer(&sch.schedule[0])))
-}
-
-func (sch fastAES) Decrypt(dst, src []byte) {
-	C.aes_ecb_decrypt(unsafe_bytes(src), unsafe_bytes(dst),
-		(*C.symmetric_key)(unsafe.Pointer(&sch.schedule[0])))
-}
-
-func (sch fastAES) BlockSize() int {
-	return 16
-}
-
-func fastAES_initialize(key []byte) cipher.Block {
-	if !(len(key) == 16 || len(key) == 32) {
-		panic("AES must use 128 or 256 bits in a key")
-	}
-	aes_schedule := make([]byte, 4096)
-	C.aes_setup((*C.uchar)(unsafe.Pointer(&(key[0]))), C.int(len(key)), 0,
-		(*C.symmetric_key)(unsafe.Pointer(&aes_schedule[0])))
-	toret := cipher.Block(fastAES{aes_schedule})
-	return toret
-}
-
-func unsafe_bytes(bts []byte) *C.uchar {
-	return (*C.uchar)(unsafe.Pointer(&bts[0]))
-}
-
-type fastGCMState []byte
-
-func (state fastGCMState) NonceSize() int {
-	return 12
-}
-
-func (state fastGCMState) Overhead() int {
-	panic("WTF!!!?!?!?!???!????!?!?")
-	return -1
-}
-
-func (state fastGCMState) Seal(dst, nonce, plaintext, data []byte) []byte {
-	rawenc := make([]byte, len(plaintext))
-	sched := (*_Ctype_gcm_state)(unsafe.Pointer(&state[0]))
-	FASSERT(C.gcm_reset(sched) == C.CRYPT_OK)
-	FASSERT(C.gcm_add_iv(sched, unsafe_bytes(nonce), 12) == C.CRYPT_OK)
-	C.gcm_add_aad(sched, nil, 0)
-	FASSERT(C.gcm_process(sched, unsafe_bytes(plaintext), C.ulong(len(plaintext)),
-		unsafe_bytes(rawenc), C.GCM_ENCRYPT) == C.CRYPT_OK)
-	tag := buf.Alloc()
-	thing := C.ulong(16)
-	FASSERT(C.gcm_done(sched, unsafe_bytes(tag), &thing) == C.CRYPT_OK)
-	rawenc = append(rawenc, tag[:int(thing)]...)
-	buf.Free(tag)
-	return append(dst, rawenc...)
-}
-
-func (state fastGCMState) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
-	rawpt := make([]byte, len(ciphertext)-16)
-	sched := (*_Ctype_gcm_state)(unsafe.Pointer(&state[0]))
-	FASSERT(C.gcm_reset(sched) == C.CRYPT_OK)
-	FASSERT(C.gcm_add_iv(sched, unsafe_bytes(nonce), 12) == C.CRYPT_OK)
-	FASSERT(C.gcm_add_aad(sched, nil, 0) == C.CRYPT_OK)
-	FASSERT(C.gcm_process(sched, unsafe_bytes(rawpt), C.ulong(len(rawpt)),
-		unsafe_bytes(ciphertext), C.GCM_DECRYPT) == C.CRYPT_OK)
-	tag := buf.Alloc()
-	thing := C.ulong(16)
-	C.gcm_done(sched, unsafe_bytes(tag), &thing)
-
-	if subtle.ConstantTimeCompare(tag[:int(thing)], ciphertext[len(rawpt):]) != 1 {
-		return nil, errors.New("WTF! HASH OF MISMATCHINGS!")
-	}
-	buf.Free(tag)
-	return append(dst, rawpt...), nil
-}
-
-func fastAES_GCM(rwkey []byte) fastGCMState {
-	key := hash_invar(rwkey)[:16]
-	state := make([]byte, 65536*20)
-	sched := (*_Ctype_gcm_state)(unsafe.Pointer(&state[0]))
+func fastTF_NewOFB(key, iv []byte) fastTF_State {
 	idx := C.find_cipher(C.CString("aes"))
-	FASSERT(C.gcm_init(sched, idx, unsafe_bytes(key), C.int(len(key))) == C.CRYPT_OK)
-	//LOG(LOG_DEBUG, "%X", state)
-	return fastGCMState(state)
-}
-
-type fastTF_State []byte
-
-func fastTF_NewOFB(key []byte) fastTF_State {
-	idx := C.find_cipher(C.CString("aes"))
-	iv := make([]byte, 16)
 	state := make([]byte, 65536)
 	FASSERT(C.ofb_start(idx,
 		unsafe_bytes(iv),
@@ -192,4 +63,16 @@ func init() {
 	FASSERT(idx != -1)
 	sha512idx = C.register_hash(&C.sha512_desc)
 	FASSERT(sha512idx != -1)
+
+	// Test vectors
+	key, _ := hex.DecodeString("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
+	iv, _ := hex.DecodeString("B7BF3A5DF43989DD97F0FA97EBCE2F4A")
+	pt, _ := hex.DecodeString("ae2d8a571e03ac9c9eb76fac45af8e51")
+	ct := make([]byte, len(pt))
+	state := fastTF_NewOFB(key, iv)
+	state.XORKeyStream(ct, pt)
+	if hex.EncodeToString(ct) != "4febdc6740d20b3ac88f6ad82a4fb08d" {
+		panic(fmt.Sprintf("AES test returned %s, should be %s", hex.EncodeToString(ct),
+			"4febdc6740d20b3ac88f6ad82a4fb08d"))
+	}
 }

@@ -92,30 +92,10 @@ func AS_arcfour128_drop8192(key []byte) AuthStreamer {
 	return AuthStreamer(toret)
 }
 
-func AS_aes128_gcm(key []byte) AuthStreamer {
-	cryptkey := hash_keyed(key, "cryptkey")[:16]
-	gcmstate := fastAES_GCM(cryptkey)
-	toret := __AEAD_authstreamer{0, gcmstate}
-	return AuthStreamer(toret)
-}
-
-func AS_aes128_ctr(key []byte) AuthStreamer {
-	cryptkey := hash_keyed(key, "cryptkey")[:16]
-	hashkey := hash_keyed(key, "hashkey")
-	blockstate := fastAES_initialize(cryptkey)
-	streamstate := cipher.NewCTR(blockstate, make([]byte, blockstate.BlockSize()))
-	truestate := cipher.Stream(streamstate)
-	toret := __XOR_authstreamer{
-		0,
-		hashkey,
-		truestate}
-	return AuthStreamer(toret)
-}
-
 func AS_aes256_ofb(key []byte) AuthStreamer {
 	cryptkey := hash_keyed(key, "cryptkey")[:32]
 	hashkey := hash_keyed(key, "hashkey")
-	streamstate := fastTF_NewOFB(cryptkey)
+	streamstate := fastTF_NewOFB(cryptkey, make([]byte, 16))
 	truestate := cipher.Stream(streamstate)
 	toret := __XOR_authstreamer{
 		0,
