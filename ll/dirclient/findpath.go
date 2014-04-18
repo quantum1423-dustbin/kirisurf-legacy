@@ -8,6 +8,12 @@ import (
 func FindPath(minlen int) []KNode {
 	protector.RLock()
 	defer protector.RUnlock()
+	if len(KDirectory) < minlen {
+		minlen = len(KDirectory)
+		if minlen == 0 {
+			panic("No nodes online, cannot build any circuit!!!!")
+		}
+	}
 	toret := make([]KNode, 0)
 	// Find an entry point
 	var entry KNode

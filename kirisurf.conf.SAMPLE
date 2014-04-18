@@ -5,4 +5,4 @@ IsExit = true
 Role = client
  
 [network]
-MinCircuitLen = 1
+MinCircuitLen = 5
