@@ -39,6 +39,7 @@ func enfreshen_scb() {
 func run_client_loop() {
 	enfreshen_scb()
 	set_gui_progress(1)
+	INFO("Bootstrapping 100%%: inital circuits built, ready to go!")
 	// Round robin, basically
 	var get_ctx func() e2e_client_ctx
 	get_ctx = func() e2e_client_ctx {
