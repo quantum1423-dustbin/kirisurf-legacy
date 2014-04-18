@@ -4,11 +4,10 @@ import "code.google.com/p/gcfg"
 
 type Config struct {
 	General struct {
-		Role         string
-		SocksAddr    string
-		ORAddr       string
-		IsExit       bool
-		DirectoryURL string
+		Role      string
+		SocksAddr string
+		ORAddr    string
+		IsExit    bool
 	}
 	Network struct {
 		MinCircuitLen int

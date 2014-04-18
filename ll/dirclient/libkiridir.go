@@ -3,12 +3,14 @@ package dirclient
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 var DIRADDR = "https://directory.kirisurf.org/"
@@ -43,7 +45,6 @@ func RefreshDirectory() error {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println(KDirectory)
 	return nil
 }
 
@@ -59,4 +60,36 @@ func PKeyLookup(pkey string) *KNode {
 		}
 	}
 	return toret
+}
+
+// Search search engines
+func FindDirectoryURL() (string, error) {
+	ch := make(chan string, 100)
+	fetch_and_parse := func(url string) {
+		s2w := make([]byte, 1)
+		rand.Reader.Read(s2w)
+		for i := 0; i < int(s2w[0])%4; i++ {
+			time.Sleep(time.Second)
+		}
+		resp, err := http.Get(url)
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+		thing := new(bytes.Buffer)
+		io.Copy(thing, resp.Body)
+		tosearch := string(thing.Bytes())
+		rge := regexp.MustCompilePOSIX("Kids in rectangles irritating sick urchins rattling foxes,.*lol")
+		str := rge.FindString(tosearch)
+		arr := strings.Split(str, " ")
+		res := arr[len(arr)-2]
+		buf := new(bytes.Buffer)
+		buf.WriteString("https://")
+		buf.WriteString(res)
+		buf.WriteString("/")
+		ch <- buf.String()
+	}
+	go fetch_and_parse("https://stackoverflow.com/users/2022968/user54609")
+	go fetch_and_parse("https://japanese.stackexchange.com/users/2960/user54609")
+	return <-ch, nil
 }

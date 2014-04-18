@@ -14,8 +14,8 @@ var ctx_buffer = make(chan e2e_client_ctx, 9)
 func enfreshen_scb() {
 	var wg sync.WaitGroup
 	wg.Add(7)
-	ctr := 0.0
-	for i := 0; i < 7; i++ {
+	ctr := 0.3
+	for i := 0; i < 6; i++ {
 		i := i
 		go func() {
 			INFO("Building initial subcircuit #%d...", i)
@@ -26,9 +26,9 @@ func enfreshen_scb() {
 				dirclient.RefreshDirectory()
 				goto retry
 			}
-			INFO("Building of initial subcircuit %d done, pushing into buffer...", i)
 			ctx_buffer <- make_e2e_client_ctx(thing.wire)
 			ctr = ctr + 0.1
+			INFO("Bootstrapping %d%%: initial subcircuit %d done!", int(ctr*100), i)
 			set_gui_progress(ctr)
 			wg.Done()
 		}()
@@ -37,7 +37,6 @@ func enfreshen_scb() {
 }
 
 func run_client_loop() {
-	set_gui_progress(0.0)
 	enfreshen_scb()
 	set_gui_progress(1)
 	// Round robin, basically

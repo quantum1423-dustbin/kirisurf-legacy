@@ -2,7 +2,6 @@
 SocksAddr = 127.0.0.1:9050
 ORAddr = 0.0.0.0:12345
 IsExit = true
-DirectoryURL = https://directory.kirisurf.org/
 Role = client
  
 [network]
