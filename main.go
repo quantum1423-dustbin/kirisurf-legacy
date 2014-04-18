@@ -36,7 +36,7 @@ func main() {
 	}
 	set_gui_progress(0.3)
 	INFO("Bootstrapping 30%%: directory refreshed, beginning to build circuits...")
-
+	INFO(MasterConfig.General.Role)
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	go run_diagnostic_loop()
 	dirclient.RefreshDirectory()
