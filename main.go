@@ -19,6 +19,7 @@ var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
+	go run_monitor_loop()
 	INFO("Kirisurf %s started! CPU count: %d", version, runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	set_gui_progress(0.1)
@@ -37,7 +38,6 @@ func main() {
 	INFO("Bootstrapping 30%%: directory refreshed, beginning to build circuits...")
 
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
-	go run_monitor_loop()
 	go run_diagnostic_loop()
 	dirclient.RefreshDirectory()
 	if MasterConfig.General.Role == "server" {
