@@ -13,7 +13,7 @@ var ctx_buffer = make(chan e2e_client_ctx, 9)
 
 func enfreshen_scb() {
 	var wg sync.WaitGroup
-	wg.Add(7)
+	wg.Add(6)
 	ctr := 0.3
 	for i := 0; i < 6; i++ {
 		i := i
