@@ -46,6 +46,9 @@ func main() {
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
 		dirclient.RunRelay(prt, MasterKeyHash,
 			MasterConfig.General.IsExit)
+		for {
+			time.Sleep(time.Second * 10)
+		}
 	}
 	run_client_loop()
 	INFO("Kirisurf exited")
