@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/base32"
+	"flag"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kicrypt"
 	"kirisurf/ll/kiss"
@@ -16,10 +17,14 @@ var MasterKey = kicrypt.SecureDH_genpair()
 var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
 	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
+	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	go run_monitor_loop()
+
 	INFO("Kirisurf %s started! CPU count: %d", version, runtime.NumCPU())
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	set_gui_progress(0.1)
@@ -37,7 +42,6 @@ func main() {
 	set_gui_progress(0.3)
 	INFO("Bootstrapping 30%%: directory refreshed, beginning to build circuits...")
 	INFO(MasterConfig.General.Role)
-	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	go run_diagnostic_loop()
 	dirclient.RefreshDirectory()
 	if MasterConfig.General.Role == "server" {

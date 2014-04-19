@@ -130,10 +130,9 @@ func (state KiSS_State) Write(p []byte) (sdfjld int, err error) {
 		state.written_packets++
 		//LOG(LOG_DEBUG, "Exiting KiSS_State.Write")
 	}()
-	LOG(LOG_DEBUG, "To write: %d:%s", len(p), string(p))
+
 	towrite, _ := state.write_ciph.Seal(p)
 	encaps := KiSS_Segment{K_APP_DATA, towrite}
-	LOG(LOG_DEBUG, "Written segment: %s|%X", encaps.StringRep(), towrite)
 	_, err = state.wire.Write(encaps.Bytes())
 	return len(p), err
 }
@@ -162,7 +161,6 @@ func (state KiSS_State) Read(p []byte) (qwe int, err error) {
 	nonce := make([]byte, 8)
 	binary.BigEndian.PutUint64(nonce, state.read_packets)
 	segment, err := KiSS_read_segment(state.wire)
-	LOG(LOG_DEBUG, "Obtained segment: %s|%X", segment.StringRep(), segment.Bytes())
 	if err != nil {
 		return 0, err
 	}
