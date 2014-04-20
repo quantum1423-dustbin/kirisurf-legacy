@@ -90,6 +90,6 @@ func FindDirectoryURL() (string, error) {
 		ch <- buf.String()
 	}
 	go fetch_and_parse("https://stackoverflow.com/users/2022968/user54609")
-	go fetch_and_parse("https://japanese.stackexchange.com/users/2960/user54609")
+	go fetch_and_parse("https://pastee.org/q2ndr")
 	return <-ch, nil
 }
