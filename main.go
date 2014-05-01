@@ -23,6 +23,7 @@ var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
+	kiss.KiSS_test()
 	go run_monitor_loop()
 
 	INFO("Kirisurf %s started! CPU count: %d", version, runtime.NumCPU())
