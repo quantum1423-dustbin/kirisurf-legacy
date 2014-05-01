@@ -26,7 +26,7 @@ func FASSERT(cond bool) {
 
 func fastTF_NewOFB(key, iv []byte) cipher.Stream {
 	thing, _ := aes.NewCipher(key)
-	ofb := cipher.NewOFB(thing, iv)
+	ofb := cipher.NewCTR(thing, iv)
 	return ofb
 }
 
