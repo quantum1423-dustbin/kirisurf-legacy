@@ -5,6 +5,8 @@ import (
 	"io"
 	"kirisurf/ll/onionstew"
 	"net"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 var serverport = ""
@@ -26,4 +28,5 @@ func e2e_server_handler(wire io.ReadWriteCloser) {
 
 func init() {
 	serverport = onionstew.RunManagedStewServer()
+	kilog.Debug("After serverport")
 }
