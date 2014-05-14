@@ -33,5 +33,5 @@ func KiSS_test() {
 			copy_conns(remreal, wire)
 		})
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(10000000 * time.Second)
 }
