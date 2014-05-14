@@ -10,7 +10,6 @@ import (
 )
 
 func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
-	DEBUG("Building a subcicruit with minlen %d...", len(slc))
 	// this returns a checker whether a public key is valid
 	pubkey_checker := func(hsh string) kiss.Verifier {
 		return func(k *big.Int) bool {
@@ -35,7 +34,6 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		return nil, err
 	}
 	for idx, ele := range slc[1:] {
-		DEBUG("Extending circuit to length %d...", idx+2)
 		// extend wire
 		err = write_sc_message(sc_message{SC_EXTEND, ele.PublicKey}, wire)
 		if err != nil {
@@ -50,12 +48,10 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 			//wire.Close()
 			return nil, err
 		}
-		DEBUG("Extended circuit to length %d", idx+2)
 	}
 	err = write_sc_message(sc_message{SC_TERMINATE, ""}, wire)
 	if err != nil {
 		return nil, err
 	}
-	DEBUG("Subcircuit building complete with length %d", len(slc))
 	return wire, nil
 }

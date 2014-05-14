@@ -25,12 +25,10 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 		for {
 			newpkt, err := read_sc_message(wire)
 			if err != nil {
-				if serverside {
-					kilog.Warning("AttachSC encountered unexpected error %s while READING, DESTROYING STEW",
-						err.Error())
-					ctx.destroy()
-				}
-				//wire.Close()
+				kilog.Warning("AttachSC encountered unexpected error %s while READING, DESTROYING STEW",
+					err.Error())
+				ctx.destroy()
+				wire.Close()
 				return
 			}
 			// Check for the dead seqnum
