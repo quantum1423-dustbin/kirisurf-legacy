@@ -33,7 +33,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		//wire.Close()
 		return nil, err
 	}
-	for idx, ele := range slc[1:] {
+	for _, ele := range slc[1:] {
 		// extend wire
 		err = write_sc_message(sc_message{SC_EXTEND, ele.PublicKey}, wire)
 		if err != nil {
