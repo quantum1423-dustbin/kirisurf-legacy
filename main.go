@@ -25,7 +25,7 @@ func main() {
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
 	INFO("%v", MasterKey.Public.Bytes())
 	INFO("Kirisurf %s started! CPU count: %d, mkh=%s", version, runtime.NumCPU(), MasterKeyHash)
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU() * 3)
 	set_gui_progress(0.1)
 	INFO("Bootstrapping 10%%: finding directory address...")
 	dirclient.DIRADDR, _ = dirclient.FindDirectoryURL()
@@ -47,7 +47,7 @@ func main() {
 		NewSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
-		dirclient.RunRelay(prt, MasterKeyHash,
+		go dirclient.RunRelay(prt, MasterKeyHash,
 			MasterConfig.General.IsExit)
 		INFO("Bootstrapping 100%%: server started!")
 		for {

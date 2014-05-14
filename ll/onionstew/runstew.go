@@ -27,7 +27,7 @@ func (ctx *stew_ctx) run_stew(is_server bool) {
 				ctx.conntable[desired_connid] = make(chan stew_message, 256)
 				ctx.lock.Unlock()
 				go ctx.attacht_remote(remote_addr, desired_connid)
-			} else if pkt.category == m_close || pkt.category == m_data {
+			} else if pkt.category == m_close || pkt.category == m_data || pkt.category == m_more {
 				ctx.lock.RLock()
 				ch := ctx.conntable[pkt.connid]
 				ctx.lock.RUnlock()
@@ -36,8 +36,6 @@ func (ctx *stew_ctx) run_stew(is_server bool) {
 					continue
 				}
 				ch <- pkt
-			} else if pkt.category == m_more {
-				// not implemented
 			} else if pkt.category == m_dns {
 				// not implemented
 			} else {

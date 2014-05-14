@@ -26,8 +26,8 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			newpkt, err := read_sc_message(wire)
 			if err != nil {
 				if serverside {
-					kilog.Warning("AttachSC encountered unexpected error %s while READING on %p, DESTROYING STEW",
-						err.Error(), wire)
+					kilog.Warning("AttachSC encountered unexpected error %s while READING, DESTROYING STEW",
+						err.Error())
 					ctx.destroy()
 				}
 				//wire.Close()
@@ -35,7 +35,7 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			}
 			// Check for the dead seqnum
 			if newpkt.seqnum == 0xFFFFFFFFFFFFFFFF {
-				kilog.Debug("Close message received from remote in AttachSC on %p, signalling...", wire)
+				kilog.Debug("Close message received from remote in AttachSC, signalling...")
 				if serverside {
 					local_stop <- true
 					kilog.Debug("Close signal successful, sending bakk and returning.")

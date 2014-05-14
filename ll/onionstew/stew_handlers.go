@@ -76,8 +76,19 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 		ctx.conntable[connid] = nil
 	}()
 
+	// Semaphore for stoppings of sendings after 256
+	stop_sem := make(chan bool, 256)
+
+	for i := 0; i < 256; i++ {
+		select {
+		case stop_sem <- true:
+		default:
+		}
+	}
+
 	// Read from read_ch
 	go func() {
+		datactr := 256
 		for {
 			select {
 			case <-ctx.killswitch:
@@ -94,6 +105,21 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 						socket.Close()
 						return
 					}
+					datactr--
+					if datactr == 0 {
+						kilog.Debug("Bucket drained, sending m_more")
+						datactr = 256
+						ctx.write_ch <- stew_message{m_more, connid, []byte("")}
+					}
+				}
+				if newpkt.category == m_more {
+					kilog.Debug("Got m_more!")
+					for i := 0; i < 256; i++ {
+						select {
+						case stop_sem <- true:
+						default:
+						}
+					}
 				}
 			case <-local_close:
 				socket.Close()
@@ -101,6 +127,7 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 			}
 		}
 	}()
+
 	buff := make([]byte, 4096)
 	// Read from socket
 	for {
@@ -115,6 +142,13 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 			thing := make([]byte, n)
 			copy(thing, buff)
 			msg := stew_message{m_data, connid, thing}
+			// Sem dec
+			select {
+			case <-stop_sem:
+			default:
+				kilog.Debug("Waiting for m_more...")
+				<-stop_sem
+			}
 			select {
 			case <-ctx.killswitch:
 				return
