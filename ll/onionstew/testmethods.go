@@ -49,7 +49,7 @@ func RunManagedStewServer() string {
 	}
 	stew_table := make(map[stid]*stew_ctx)
 	var stew_table_lk sync.Mutex
-
+	kilog.Debug("before gc goroutine")
 	// Garbage collect stew table every 30 seconds
 	go func() {
 		for {
@@ -75,7 +75,7 @@ func RunManagedStewServer() string {
 			kilog.Debug("Marking phase done!")
 		}
 	}()
-
+	kilog.Debug("before main goroutine")
 	go func() {
 		for {
 			thing, err := listener.Accept()
@@ -106,6 +106,7 @@ func RunManagedStewServer() string {
 			}()
 		}
 	}()
+	kilog.Debug("before return")
 	return listener.Addr().String()
 }
 
