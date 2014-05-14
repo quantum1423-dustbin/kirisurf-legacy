@@ -9,13 +9,7 @@ import (
 	"net"
 )
 
-type Subcircuit struct {
-	cpath []dirclient.KNode
-	wire  io.ReadWriteCloser
-}
-
-func build_subcircuit() (*Subcircuit, error) {
-	slc := dirclient.FindPath(MasterConfig.Network.MinCircuitLen)
+func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	DEBUG("Building a subcicruit with minlen %d...", len(slc))
 	// this returns a checker whether a public key is valid
 	pubkey_checker := func(hsh string) kiss.Verifier {
@@ -63,6 +57,5 @@ func build_subcircuit() (*Subcircuit, error) {
 		return nil, err
 	}
 	DEBUG("Subcircuit building complete with length %d", len(slc))
-	toret := Subcircuit{slc, wire}
-	return &toret, nil
+	return wire, nil
 }

@@ -47,7 +47,7 @@ func sc_server_handler(wire net.Conn) error {
 		io.Copy(awire, remwire)
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
-		e2e_server_handler(newGobWire(awire))
+		e2e_server_handler(awire)
 	}
 	return nil
 }

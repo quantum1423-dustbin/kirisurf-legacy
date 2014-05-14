@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 var __log_lock sync.Mutex
@@ -28,42 +28,17 @@ func __write_log(level string, format string, args ...interface{}) {
 }
 
 func DEBUG(format string, args ...interface{}) {
-	if __log_min_level != "debug" {
-		return
-	}
-	_, file, line, _ := runtime.Caller(1)
-	if LOG_SHOW_FILENAMES {
-		format = fmt.Sprintf("%s <<< %s:%d", format, filepath.Base(file), line)
-	}
-	__write_log("DEBG", format, args...)
+	kilog.Debug(format, args...)
 }
 
 func INFO(format string, args ...interface{}) {
-	if __log_min_level == "warning" || __log_min_level == "critical" {
-		return
-	}
-	_, file, line, _ := runtime.Caller(1)
-	if LOG_SHOW_FILENAMES {
-		format = fmt.Sprintf("%s <<< %s:%d", format, filepath.Base(file), line)
-	}
-	__write_log("INFO", format, args...)
+	kilog.Info(format, args...)
 }
 
 func WARNING(format string, args ...interface{}) {
-	if __log_min_level == "critical" {
-		return
-	}
-	_, file, line, _ := runtime.Caller(1)
-	if LOG_SHOW_FILENAMES {
-		format = fmt.Sprintf("%s <<< %s:%d", format, filepath.Base(file), line)
-	}
-	__write_log("WARN", format, args...)
+	kilog.Warning(format, args...)
 }
 
 func CRITICAL(format string, args ...interface{}) {
-	_, file, line, _ := runtime.Caller(1)
-	if LOG_SHOW_FILENAMES {
-		format = fmt.Sprintf("%s <<< %s:%d", format, filepath.Base(file), line)
-	}
-	__write_log("CRIT", format, args...)
+	kilog.Critical(format, args...)
 }

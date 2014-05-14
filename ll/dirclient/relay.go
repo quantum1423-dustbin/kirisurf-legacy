@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	PROTVER = 200
+	PROTVER = 300
 )
 
 var ISRELAY = false

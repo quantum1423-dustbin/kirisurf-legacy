@@ -2,14 +2,46 @@
 package dirclient
 
 import (
-	"math/rand"
+	"crypto/rand"
 )
 
-func FindPath(minlen int) []KNode {
+func FindPathGroup(guidelen int) [][]KNode {
 	protector.RLock()
 	defer protector.RUnlock()
-	if len(KDirectory) < minlen {
-		minlen = len(KDirectory)
+
+	// We first find one path and obtain the endpoint
+	protopath := FindPath(KDirectory, guidelen)
+	endpoint := protopath[len(protopath)-1]
+
+	// Make a copy of the directory
+	DirCopy := make([]KNode, len(KDirectory))
+	copy(DirCopy, KDirectory)
+
+	// Unmark all nodes except endpoint as exit
+	for i := 0; i < len(DirCopy); i++ {
+		if DirCopy[i].Address != endpoint.Address {
+			DirCopy[i].ExitNode = false
+		}
+	}
+
+	// Return 16 random paths
+	toret := make([][]KNode, 16)
+	for i := 0; i < 16; i++ {
+		toret[i] = FindPath(DirCopy, guidelen)
+	}
+
+	return toret
+}
+
+func FindPath(directory []KNode, minlen int) []KNode {
+	rand256 := func() int {
+		buf := make([]byte, 1)
+		rand.Read(buf)
+		return int(buf[0])
+	}
+
+	if len(directory) < minlen {
+		minlen = len(directory)
 		if minlen == 0 {
 			panic("No nodes online, cannot build any circuit!!!!")
 		}
@@ -18,9 +50,9 @@ func FindPath(minlen int) []KNode {
 	// Find an entry point
 	var entry KNode
 	for {
-		idx := rand.Int() % len(KDirectory)
-		thing := KDirectory[idx]
-		if thing.Address != "(hidden)" && rand.Int()%10 < 1 {
+		idx := rand256() % len(directory)
+		thing := directory[idx]
+		if thing.Address != "(hidden)" && rand256()%10 < 1 {
 			entry = thing
 			break
 		}
@@ -32,12 +64,12 @@ func FindPath(minlen int) []KNode {
 	for {
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
-		if endptr+1 >= minlen && toret[endptr].ExitNode {
+		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion > 300 {
 			return toret
 		}
 		// Otherwise chug along
-		idx := rand.Int() % len(adj)
-		next := KDirectory[adj[idx]]
+		idx := rand256() % len(adj)
+		next := directory[adj[idx]]
 		toret = append(toret, next)
 		endptr++
 	}
