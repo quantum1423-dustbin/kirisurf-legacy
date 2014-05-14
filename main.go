@@ -23,7 +23,8 @@ var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
 	kiss.SetCipher(kicrypt.AS_aes256_ofb)
-	INFO("Kirisurf %s started! CPU count: %d", version, runtime.NumCPU())
+	INFO("%v", MasterKey.Public.Bytes())
+	INFO("Kirisurf %s started! CPU count: %d, mkh=%s", version, runtime.NumCPU(), MasterKeyHash)
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	set_gui_progress(0.1)
 	INFO("Bootstrapping 10%%: finding directory address...")

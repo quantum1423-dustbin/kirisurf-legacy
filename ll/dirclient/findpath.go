@@ -64,7 +64,7 @@ func FindPath(directory []KNode, minlen int) []KNode {
 	for {
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
-		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion > 300 {
+		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion >= 300 {
 			return toret
 		}
 		// Otherwise chug along

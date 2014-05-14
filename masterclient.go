@@ -31,7 +31,7 @@ func enfreshen_scb() {
 	retry:
 		sc, err := build_subcircuit(viableNodes[rand.Int()%16])
 		if err != nil {
-			kilog.Warning("What?")
+			kilog.Warning("What? %s", err.Error())
 			goto retry
 		}
 		return sc
