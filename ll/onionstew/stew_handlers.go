@@ -145,9 +145,15 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 			// Sem dec
 			select {
 			case <-stop_sem:
+			case <-ctx.killswitch:
+				return
 			default:
 				kilog.Debug("Waiting for m_more...")
-				<-stop_sem
+				select {
+				case <-stop_sem:
+				case <-ctx.killswitch:
+					return
+				}
 			}
 			select {
 			case <-ctx.killswitch:
