@@ -25,7 +25,6 @@ func MessToStream(mess io.ReadWriteCloser) io.ReadWriteCloser {
 }
 
 func (prov *m2s_provider) Read(p []byte) (int, error) {
-	fmt.Printf("Read(%v)\n", p)
 	prov.rlock.Lock()
 	defer prov.rlock.Unlock()
 	if prov.buffer != nil {
