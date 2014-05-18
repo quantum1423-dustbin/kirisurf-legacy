@@ -6,11 +6,15 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	// this returns a checker whether a public key is valid
 	pubkey_checker := func(hsh string) func([]byte) bool {
+		return func([]byte) bool { return true }
+
 		return func(xaxa []byte) bool {
 			hashed := hash_base32(xaxa)
 			return subtle.ConstantTimeCompare([]byte(hashed), []byte(hsh)) == 1
@@ -52,5 +56,6 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	if err != nil {
 		return nil, err
 	}
+	kilog.Debug("Sent SC_TERMINATE")
 	return wire, nil
 }
