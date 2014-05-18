@@ -6,6 +6,8 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 func sc_server_handler(wire io.ReadWriteCloser) error {
@@ -42,6 +44,7 @@ func sc_server_handler(wire io.ReadWriteCloser) error {
 		if qqq == nil {
 			return nil
 		}
+		kilog.Debug("Continuing to %s", qqq.Address)
 		remm, err := net.Dial("tcp", qqq.Address)
 		if err != nil {
 			return err
