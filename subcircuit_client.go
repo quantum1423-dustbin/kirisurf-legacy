@@ -25,24 +25,22 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer iwire.Close()
 	gwire, err := kiss.Obfs3fHandshake(iwire, false)
 	if err != nil {
-		//iwire.Close()
+		iwire.Close()
 		return nil, err
 	}
-	defer gwire.Close()
 	wire, err := kiss.TransportHandshake(kiss.GenerateDHKeys(),
 		gwire, pubkey_checker(slc[0].PublicKey))
 	if err != nil {
-		//wire.Close()
+		iwire.Close()
 		return nil, err
 	}
-	defer wire.Close()
 	for _, ele := range slc[1:] {
 		// extend wire
 		err = write_sc_message(sc_message{SC_EXTEND, ele.PublicKey}, wire)
 		if err != nil {
+			iwire.Close()
 			return nil, err
 		}
 
@@ -50,12 +48,13 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		// at this point wire is raw (well unobfs) connection to next
 		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), wire, verifier)
 		if err != nil {
-			//wire.Close()
+			iwire.Close()
 			return nil, err
 		}
 	}
 	err = write_sc_message(sc_message{SC_TERMINATE, "\000\000\000"}, wire)
 	if err != nil {
+		iwire.Close()
 		return nil, err
 	}
 	kilog.Debug("Sent SC_TERMINATE")
