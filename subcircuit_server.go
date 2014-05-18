@@ -12,6 +12,7 @@ import (
 )
 
 func sc_server_handler(wire net.Conn) error {
+	kilog.Debug("Incoming from %s", wire.RemoteAddr())
 	defer wire.Close()
 	owire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
@@ -39,6 +40,7 @@ func sc_server_handler(wire net.Conn) error {
 		}
 		actwire, err := net.Dial("tcp", theirnode.Address)
 		if err != nil {
+			kilog.Debug(err.Error())
 			return err
 		}
 		go func() {

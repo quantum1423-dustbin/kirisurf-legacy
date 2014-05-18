@@ -32,7 +32,7 @@ func enfreshen_scb() {
 		xaxa := viableNodes[rand.Int()%16]
 		sc, err := build_subcircuit(xaxa)
 		if err != nil {
-			kilog.Warning("What? %s %v", err.Error(), xaxa)
+			kilog.Warning("What? %v", err.Error())
 			goto retry
 		}
 		return sc

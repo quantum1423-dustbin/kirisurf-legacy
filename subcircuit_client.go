@@ -49,11 +49,13 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		xaxa := wire
 		gwire, err := kiss.Obfs3fHandshake(xaxa, false)
 		if err != nil {
+			kilog.Debug("Died when obfs3 at %s", ele.PublicKey)
 			iwire.Close()
 			return nil, err
 		}
 		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), gwire, verifier)
 		if err != nil {
+			kilog.Debug("Died when transport at %s", ele.PublicKey)
 			iwire.Close()
 			return nil, err
 		}
