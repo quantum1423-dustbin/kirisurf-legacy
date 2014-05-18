@@ -53,11 +53,11 @@ func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 			return nil
 		}
 		kilog.Debug("Continuing to %s", qqq.Address)
-		remm, err := net.Dial("tcp", qqq.Address)
+		rem, err := net.Dial("tcp", qqq.Address)
 		if err != nil {
 			return err
 		}
-		remm, err = kiss.Obfs3fHandshake(remm, false)
+		remm, err = kiss.Obfs3fHandshake(rem, false)
 		if err != nil {
 			return err
 		}
