@@ -10,12 +10,17 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-func sc_server_handler(wire io.ReadWriteCloser) error {
+func sc_server_handler(wire io.ReadWriteCloser) (err error) {
+	defer func() {
+		if err != nil {
+			kilog.Debug("sc_server_handler returning err=%s", err.Error)
+		}
+	}()
 	defer wire.Close()
-	wire, err := kiss.Obfs3fHandshake(wire, true)
+	wire, err = kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
 		//kilog.Debug(err.Error())
-		return err
+		return nil
 	}
 	wire, err = kiss.TransportHandshake(MasterKey, wire,
 		func([]byte) bool { return true })
