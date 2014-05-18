@@ -39,6 +39,9 @@ func sc_server_handler(wire io.ReadWriteCloser) error {
 		}
 		key := string(xaxa)
 		qqq := dirclient.PKeyLookup(key)
+		if qqq == nil {
+			return nil
+		}
 		remm, err := net.Dial("tcp", qqq.Address)
 		if err != nil {
 			return err
