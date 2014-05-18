@@ -30,6 +30,7 @@ func sc_server_handler(wire net.Conn) error {
 		WARNING(err.Error())
 		return err
 	}
+	kilog.Debug("%v", cmd)
 	if cmd.Msg_type == SC_EXTEND {
 		theirnode := dirclient.PKeyLookup(cmd.Msg_arg)
 		if theirnode == nil {
