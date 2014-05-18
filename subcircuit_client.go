@@ -53,7 +53,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 			return nil, err
 		}
 	}
-	err = write_sc_message(sc_message{SC_TERMINATE, ""}, wire)
+	err = write_sc_message(sc_message{SC_TERMINATE, "\000\000\000"}, wire)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,8 @@ package main
 
 import (
 	"io"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 const (
@@ -32,6 +34,7 @@ func read_sc_message(thing io.Reader) (sc_message, error) {
 }
 
 func write_sc_message(msg sc_message, thing io.Writer) error {
+	kilog.Debug("write_sc_message(%x)", msg)
 	tosend := make([]byte, len([]byte(msg.Msg_arg))+2)
 	tosend[0] = byte(len(tosend) - 1)
 	tosend[1] = byte(msg.Msg_type)
