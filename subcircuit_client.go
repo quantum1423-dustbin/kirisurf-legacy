@@ -46,8 +46,13 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
-		wire, err := kiss.Obfs3fHandshake(wire, false)
-		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), wire, verifier)
+		xaxa := wire
+		gwire, err := kiss.Obfs3fHandshake(xaxa, false)
+		if err != nil {
+			iwire.Close()
+			return nil, err
+		}
+		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), gwire, verifier)
 		if err != nil {
 			iwire.Close()
 			return nil, err

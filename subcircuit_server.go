@@ -42,10 +42,12 @@ func sc_server_handler(wire net.Conn) error {
 			return err
 		}
 		go func() {
-			io.Copy(actwire, awire)
+			_, err := io.Copy(actwire, awire)
+			kilog.Debug(err.Error())
 			actwire.Close()
 		}()
-		io.Copy(awire, actwire)
+		_, err = io.Copy(awire, actwire)
+		kilog.Debug(err.Error())
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
 		kilog.Debug("SC_TERMINATE received")
