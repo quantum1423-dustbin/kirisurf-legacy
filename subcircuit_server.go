@@ -7,6 +7,8 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 func sc_server_handler(wire net.Conn) error {
@@ -19,7 +21,7 @@ func sc_server_handler(wire net.Conn) error {
 	awire, err := kiss.TransportHandshake(MasterKey, owire,
 		func([]byte) bool { return true })
 	if err != nil {
-		//log.Error(err.Error())
+		kilog.Debug(err.Error())
 		return err
 	}
 	// Now awire is the wire
@@ -48,6 +50,7 @@ func sc_server_handler(wire net.Conn) error {
 		io.Copy(awire, remwire)
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
+		kilog.Debug("SC_TERMINATE received")
 		e2e_server_handler(awire)
 	}
 	return nil
