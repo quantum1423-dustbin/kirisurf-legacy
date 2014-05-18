@@ -19,6 +19,7 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
+
 	INFO("Kirisurf %s started! CPU count: %d, mkh=%s", version, runtime.NumCPU(), MasterKeyHash)
 	runtime.GOMAXPROCS(runtime.NumCPU() * 3)
 	set_gui_progress(0.1)

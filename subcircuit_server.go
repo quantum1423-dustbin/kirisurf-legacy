@@ -7,12 +7,14 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+	"time"
 
 	"github.com/KirisurfProject/kilog"
 )
 
 func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
+	time.Sleep(time.Second)
 	owire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
 		//kilog.Debug(err.Error())
@@ -33,6 +35,7 @@ func sc_server_handler(wire net.Conn) error {
 	}
 	kilog.Debug("%v", cmd)
 	if cmd.Msg_type == SC_EXTEND {
+
 		theirnode := dirclient.PKeyLookup(cmd.Msg_arg)
 		if theirnode == nil {
 			return errors.New("Watif")
@@ -43,10 +46,10 @@ func sc_server_handler(wire net.Conn) error {
 			return err
 		}
 		go func() {
-			_, err := io.Copy(actwire, awire)
+			io.Copy(actwire, awire)
 			actwire.Close()
 		}()
-		_, err = io.Copy(awire, actwire)
+		io.Copy(awire, actwire)
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
 		kilog.Debug("SC_TERMINATE received")

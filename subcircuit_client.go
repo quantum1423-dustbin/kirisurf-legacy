@@ -46,14 +46,13 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
-		xaxa := wire
-		gwire, err := kiss.Obfs3fHandshake(xaxa, false)
+		wire, err := kiss.Obfs3fHandshake(wire, false)
 		if err != nil {
 			kilog.Debug("Died when obfs3 at %s", ele.PublicKey)
 			iwire.Close()
 			return nil, err
 		}
-		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), gwire, verifier)
+		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), wire, verifier)
 		if err != nil {
 			kilog.Debug("Died when transport at %s", ele.PublicKey)
 			iwire.Close()
