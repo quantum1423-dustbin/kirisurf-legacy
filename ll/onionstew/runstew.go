@@ -7,6 +7,11 @@ import (
 )
 
 func (ctx *stew_ctx) run_stew(is_server bool) {
+	defer func() {
+		if x := recover(); x != nil {
+			kilog.Debug("%v", x)
+		}
+	}()
 	for {
 		select {
 		case <-ctx.killswitch:

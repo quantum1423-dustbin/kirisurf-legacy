@@ -3,7 +3,6 @@ package onionstew
 import (
 	"io"
 	"math/rand"
-	"time"
 
 	"github.com/KirisurfProject/kilog"
 )
@@ -66,7 +65,6 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 				// Will die on next iteration
 			}
 		case <-local_stop:
-			time.Sleep(time.Second * 5)
 			return
 		case <-local_close:
 			kilog.Debug("AttachSC receiving LOCAL_CLOSE, stopping flow & sending remote")
