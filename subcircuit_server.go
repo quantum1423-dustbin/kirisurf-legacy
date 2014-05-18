@@ -57,6 +57,10 @@ func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 		if err != nil {
 			return err
 		}
+		remm, err := kiss.Obfs3fHandshake(remm, false)
+		if err != nil {
+			return err
+		}
 		go func() {
 			io.Copy(wire, remm)
 			wire.Close()
