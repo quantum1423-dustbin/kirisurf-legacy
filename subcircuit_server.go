@@ -9,14 +9,13 @@ import (
 	"net"
 
 	"github.com/KirisurfProject/kilog"
-	"github.com/coreos/go-log/log"
 )
 
 func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
 	owire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
-		//log.Error(err.Error())
+		kilog.Debug(err.Error())
 		return err
 	}
 	awire, err := kiss.TransportHandshake(MasterKey, owire,
@@ -77,7 +76,7 @@ func NewSCServer(addr string) SCServer {
 			default:
 				// establish connection
 				client, err := listener.Accept()
-				log.Debug("Of acceptings client: %s", client.RemoteAddr())
+				//log.Debug("Of acceptings client: %s", client.RemoteAddr())
 				if err != nil {
 					CRITICAL(err.Error())
 					client.Close()
