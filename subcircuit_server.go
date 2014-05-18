@@ -41,15 +41,11 @@ func sc_server_handler(wire net.Conn) error {
 		if err != nil {
 			return err
 		}
-		remwire, err := kiss.Obfs3fHandshake(actwire, false)
-		if err != nil {
-			return err
-		}
 		go func() {
-			io.Copy(remwire, awire)
-			remwire.Close()
+			io.Copy(actwire, awire)
+			actwire.Close()
 		}()
-		io.Copy(awire, remwire)
+		io.Copy(awire, actwire)
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
 		kilog.Debug("SC_TERMINATE received")

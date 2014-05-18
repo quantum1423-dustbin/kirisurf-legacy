@@ -46,11 +46,13 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
+		wire, err := kiss.Obfs3fHandshake(wire, false)
 		wire, err = kiss.TransportHandshake(kiss.GenerateDHKeys(), wire, verifier)
 		if err != nil {
 			iwire.Close()
 			return nil, err
 		}
+		kilog.Debug("Connected to %v", ele)
 	}
 	err = write_sc_message(sc_message{SC_TERMINATE, "\000\000\000"}, wire)
 	if err != nil {

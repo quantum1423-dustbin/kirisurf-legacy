@@ -3,6 +3,8 @@ package dirclient
 
 import (
 	"crypto/rand"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 func FindPathGroup(guidelen int) [][]KNode {
@@ -38,6 +40,8 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		minlen = len(directory)
 	}
 
+	kilog.Debug("minlen = %d", minlen)
+
 	rand256 := func() int {
 		buf := make([]byte, 1)
 		rand.Read(buf)
@@ -56,7 +60,7 @@ func FindPath(directory []KNode, minlen int) []KNode {
 	for {
 		idx := rand256() % len(directory)
 		thing := directory[idx]
-		if thing.Address != "(hidden)" && rand256()%10 < 1 {
+		if thing.Address != "(hidden)" && rand256()%10 < 1 && !thing.ExitNode {
 			entry = thing
 			break
 		}
@@ -69,6 +73,7 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
 		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion >= 300 {
+			kilog.Debug("%v", toret)
 			return toret
 		}
 		// Otherwise chug along

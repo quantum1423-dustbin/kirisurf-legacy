@@ -39,7 +39,7 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 	first_sc := sc_generate()
 	_, err := first_sc.Write(toret.stew_id)
 	if err != nil {
-		return nil, errors.New("Cannot create SC successfully!")
+		return nil, errors.New("Cannot create SC successfully! (%s)")
 	}
 
 	go toret.underlying.llctx.AttachSC(first_sc, false)
