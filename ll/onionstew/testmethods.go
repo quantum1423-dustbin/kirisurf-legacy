@@ -54,7 +54,6 @@ func RunManagedStewServer() string {
 	go func() {
 		for {
 			time.Sleep(time.Second * 30)
-			kilog.Debug("Garbage collecting stew table...")
 			stew_table_lk.Lock()
 			for stid, ctx := range stew_table {
 				ctx.llctx.lock.Lock()
@@ -72,7 +71,6 @@ func RunManagedStewServer() string {
 				}
 			}
 			stew_table_lk.Unlock()
-			kilog.Debug("Marking phase done!")
 		}
 	}()
 	kilog.Debug("before main goroutine")

@@ -34,6 +34,10 @@ func FindPathGroup(guidelen int) [][]KNode {
 }
 
 func FindPath(directory []KNode, minlen int) []KNode {
+	if minlen > len(directory) {
+		minlen = len(directory)
+	}
+
 	rand256 := func() int {
 		buf := make([]byte, 1)
 		rand.Read(buf)

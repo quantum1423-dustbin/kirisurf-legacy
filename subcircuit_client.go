@@ -25,22 +25,24 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer iwire.Close()
 	gwire, err := kiss.Obfs3fHandshake(iwire, false)
 	if err != nil {
 		//iwire.Close()
 		return nil, err
 	}
+	defer gwire.Close()
 	wire, err := kiss.TransportHandshake(kiss.GenerateDHKeys(),
 		gwire, pubkey_checker(slc[0].PublicKey))
 	if err != nil {
 		//wire.Close()
 		return nil, err
 	}
+	defer wire.Close()
 	for _, ele := range slc[1:] {
 		// extend wire
 		err = write_sc_message(sc_message{SC_EXTEND, ele.PublicKey}, wire)
 		if err != nil {
-			wire.Close()
 			return nil, err
 		}
 

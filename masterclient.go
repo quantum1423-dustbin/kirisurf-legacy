@@ -29,9 +29,10 @@ func enfreshen_scb() {
 	// Function for returnings of one stronk subcircuit
 	gen_subcircuit := func() io.ReadWriteCloser {
 	retry:
-		sc, err := build_subcircuit(viableNodes[rand.Int()%16])
+		xaxa := viableNodes[rand.Int()%16]
+		sc, err := build_subcircuit(xaxa)
 		if err != nil {
-			kilog.Warning("What? %s", err.Error())
+			kilog.Warning("What? %s %v", err.Error(), xaxa)
 			goto retry
 		}
 		return sc

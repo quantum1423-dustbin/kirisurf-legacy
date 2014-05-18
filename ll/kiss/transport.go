@@ -2,6 +2,7 @@ package kiss
 
 import (
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -35,7 +36,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	their_pubkey := make([]byte, 2048/8)
 	_, err := io.ReadFull(wire, their_pubkey)
 	if err != nil {
-		return nil, errors.New("Couldn't read their longterm key")
+		return nil, errors.New(fmt.Sprintf("Couldn't read their longterm key (%s)", err.Error()))
 	}
 	if !verify(their_pubkey) {
 		return nil, ErrMacNoMatch
