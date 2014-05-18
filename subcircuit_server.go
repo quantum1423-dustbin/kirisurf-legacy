@@ -12,7 +12,6 @@ import (
 )
 
 func sc_server_handler(wire net.Conn) error {
-	kilog.Debug("Incoming from %s", wire.RemoteAddr())
 	defer wire.Close()
 	owire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
@@ -45,11 +44,9 @@ func sc_server_handler(wire net.Conn) error {
 		}
 		go func() {
 			_, err := io.Copy(actwire, awire)
-			kilog.Debug(err.Error())
 			actwire.Close()
 		}()
 		_, err = io.Copy(awire, actwire)
-		kilog.Debug(err.Error())
 		awire.Close()
 	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
 		kilog.Debug("SC_TERMINATE received")
