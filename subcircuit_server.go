@@ -47,9 +47,12 @@ func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 			return err
 		}
 		key := string(xaxa)
+	retry:
 		qqq := dirclient.PKeyLookup(key)
 		if qqq == nil {
 			kilog.Debug("Cannot find %s in %v", xaxa, dirclient.KDirectory)
+			dirclient.RefreshDirectory()
+			goto retry
 			return nil
 		}
 		kilog.Debug("Continuing to %s", qqq.Address)
