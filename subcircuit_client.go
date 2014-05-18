@@ -6,6 +6,7 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+	"time"
 
 	"github.com/KirisurfProject/kilog"
 )
@@ -57,5 +58,6 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		return nil, err
 	}
 	kilog.Debug("Sent SC_TERMINATE")
+	time.Sleep(time.Second * 10)
 	return wire, nil
 }
