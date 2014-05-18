@@ -7,11 +7,6 @@ import (
 )
 
 func (ctx *stew_ctx) run_stew(is_server bool) {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered a panic: ", r)
-		}
-	}()
 	for {
 		select {
 		case <-ctx.killswitch:

@@ -2,6 +2,7 @@ package onionstew
 
 import (
 	"io"
+	"math/rand"
 	"time"
 
 	"github.com/KirisurfProject/kilog"
@@ -22,11 +23,12 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 	ctx.close_ch_ch <- local_close
 	// Read from the other side
 	go func() {
+		id := rand.Int()
 		for {
 			newpkt, err := read_sc_message(wire)
 			if err != nil {
-				kilog.Warning("AttachSC encountered unexpected error %s while READING, DESTROYING STEW",
-					err.Error())
+				kilog.Warning("AttachSC encountered unexpected error %s on %x while READING, DESTROYING STEW",
+					err.Error(), id)
 				ctx.destroy()
 				wire.Close()
 				return
@@ -36,14 +38,11 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 				kilog.Debug("Close message received from remote in AttachSC, signalling...")
 				if serverside {
 					local_stop <- true
-					kilog.Debug("Close signal successful, sending bakk and returning.")
+					kilog.Debug("Close signal successful, sending bakk and returning from %x.", id)
 					clmsg := sc_message{0xFFFFFFFFFFFFFFFF, []byte("")}
 					write_sc_message(clmsg, wire)
 				}
-				go func() {
-					time.Sleep(time.Second)
-					wire.Close()
-				}()
+				wire.Close()
 				return
 			}
 			select {
@@ -67,13 +66,12 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 				// Will die on next iteration
 			}
 		case <-local_stop:
+			time.Sleep(time.Second * 5)
 			return
 		case <-local_close:
 			kilog.Debug("AttachSC receiving LOCAL_CLOSE, stopping flow & sending remote")
-			if serverside {
-				clmsg := sc_message{0xFFFFFFFFFFFFFFFF, []byte("")}
-				write_sc_message(clmsg, wire)
-			}
+			clmsg := sc_message{0xFFFFFFFFFFFFFFFF, []byte("")}
+			write_sc_message(clmsg, wire)
 			return
 		case <-ctx.killswitch:
 			kilog.Debug("AttachSC receiving KILLSWITCH, destroying wire")
