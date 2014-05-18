@@ -35,8 +35,9 @@ func (prov *m2s_provider) Read(p []byte) (int, error) {
 			prov.buffer = prov.buffer[len(p):]
 			return len(p), nil
 		} else {
+			xaxa := len(prov.buffer)
 			prov.buffer = nil
-			return len(prov.buffer), nil
+			return xaxa, nil
 		}
 	}
 	rbuf := make([]byte, 65536)
