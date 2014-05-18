@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"crypto/subtle"
+	"fmt"
 
 	"code.google.com/p/go.crypto/salsa20"
 )
@@ -27,6 +28,7 @@ func (ctx *chugger) Seal(pt []byte) []byte {
 	pt = append(tag, pt...)
 
 	salsa20.XORKeyStream(toret[24:], pt, nonce, ctx.key)
+	fmt.Printf("sealing %x to %x\n", pt, toret)
 	return toret
 }
 
@@ -35,6 +37,7 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 		return nil, ErrPacketTooShort
 	}
 	nonce := ct[:24]
+	oct = ct
 	ct = ct[24:]
 	pt := make([]byte, len(ct))
 	salsa20.XORKeyStream(pt, ct, nonce, ctx.key)
@@ -44,6 +47,7 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 	hypo_sum := pt[:20]
 
 	if subtle.ConstantTimeCompare(actual_sum, hypo_sum) == 1 {
+		fmt.Printf("opening %x to %x\n", oct, pt)
 		return pt[20:], nil
 	}
 	return nil, ErrMacNoMatch
