@@ -15,9 +15,10 @@ func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
 	owire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
-		kilog.Debug(err.Error())
+		//kilog.Debug(err.Error())
 		return err
 	}
+	kilog.Debug("yay!")
 	awire, err := kiss.TransportHandshake(MasterKey, owire,
 		func([]byte) bool { return true })
 	if err != nil {
