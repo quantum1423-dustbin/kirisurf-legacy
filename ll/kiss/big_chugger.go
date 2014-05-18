@@ -37,7 +37,7 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 		return nil, ErrPacketTooShort
 	}
 	nonce := ct[:24]
-	oct = ct
+	oct := ct
 	ct = ct[24:]
 	pt := make([]byte, len(ct))
 	salsa20.XORKeyStream(pt, ct, nonce, ctx.key)
