@@ -81,11 +81,11 @@ func RunManagedStewServer() string {
 				continue
 			}
 			go func() {
-				defer thing.Close()
 				// Obtain the stew id
 				idbuf := make([]byte, 16)
 				_, err := io.ReadFull(thing, idbuf)
 				if err != nil {
+					thing.Close()
 					kilog.Warning("Client didn't send the entire stew ID before dying")
 					return
 				}
