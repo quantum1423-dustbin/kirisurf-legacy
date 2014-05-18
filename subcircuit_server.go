@@ -49,7 +49,7 @@ func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 		key := string(xaxa)
 		qqq := dirclient.PKeyLookup(key)
 		if qqq == nil {
-			kilog.Debug("Cannot find %s", qqq)
+			kilog.Debug("Cannot find %s", xaxa)
 			return nil
 		}
 		kilog.Debug("Continuing to %s", qqq.Address)
