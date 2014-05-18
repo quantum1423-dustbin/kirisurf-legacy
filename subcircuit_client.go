@@ -38,7 +38,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	}
 	for _, ele := range slc[1:] {
 		// extend wire
-		err = wire.Write(append(len(ele.PublicKey), ele.PublicKey...))
+		_, err = wire.Write(append([]byte{byte(len(ele.PublicKey))}, ele.PublicKey...))
 		if err != nil {
 			iwire.Close()
 			return nil, err
@@ -60,7 +60,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		}
 		kilog.Debug("Connected to %v", ele)
 	}
-	err = wire.Write([]byte("\000"))
+	_, err = wire.Write([]byte("\000"))
 	if err != nil {
 		iwire.Close()
 		return nil, err
