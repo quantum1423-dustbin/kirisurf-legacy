@@ -1,7 +1,6 @@
 package kiss
 
 import (
-	"fmt"
 	"io"
 	"sync"
 )
@@ -28,7 +27,6 @@ func (prov *m2s_provider) Read(p []byte) (int, error) {
 	prov.rlock.Lock()
 	defer prov.rlock.Unlock()
 	if prov.buffer != nil {
-		fmt.Println("Using buffer=", prov.buffer)
 		copy(p, prov.buffer)
 		if len(p) < len(prov.buffer) {
 			prov.buffer = prov.buffer[len(p):]
@@ -52,7 +50,6 @@ func (prov *m2s_provider) Read(p []byte) (int, error) {
 	must_be_buf := rbuf[len(p):n]
 	copy(p, can_be_read)
 	prov.buffer = must_be_buf
-	fmt.Println("Put some in buffer")
 	return len(can_be_read), nil
 }
 
