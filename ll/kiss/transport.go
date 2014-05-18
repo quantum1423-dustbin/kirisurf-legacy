@@ -1,6 +1,9 @@
 package kiss
 
-import "io"
+import (
+	"errors"
+	"io"
+)
 
 // This file implements the transport of kiss. Handshake is completely symmetrical; nonces ensure
 // no ugly things involving keys on both sides happen.
@@ -32,7 +35,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	their_pubkey := make([]byte, 2048/8)
 	_, err := io.ReadFull(wire, their_pubkey)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Couldn't read their longterm key")
 	}
 	if !verify(their_pubkey) {
 		return nil, ErrMacNoMatch
@@ -42,7 +45,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	their_eph_pubkey := make([]byte, 2048/8)
 	_, err = io.ReadFull(wire, their_eph_pubkey)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Couldn't read their shortterm key")
 	}
 
 	// Generate secret
