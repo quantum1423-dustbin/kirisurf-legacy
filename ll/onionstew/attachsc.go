@@ -70,8 +70,10 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			return
 		case <-local_close:
 			kilog.Debug("AttachSC receiving LOCAL_CLOSE, stopping flow & sending remote")
-			clmsg := sc_message{0xFFFFFFFFFFFFFFFF, []byte("")}
-			write_sc_message(clmsg, wire)
+			if serverside {
+				clmsg := sc_message{0xFFFFFFFFFFFFFFFF, []byte("")}
+				write_sc_message(clmsg, wire)
+			}
 			return
 		case <-ctx.killswitch:
 			kilog.Debug("AttachSC receiving KILLSWITCH, destroying wire")

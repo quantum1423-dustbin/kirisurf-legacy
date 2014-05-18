@@ -2,10 +2,8 @@
 package main
 
 import (
-	"encoding/base32"
 	"flag"
 	"kirisurf/ll/dirclient"
-	"kirisurf/ll/kicrypt"
 	"kirisurf/ll/kiss"
 	"runtime"
 	"strconv"
@@ -13,17 +11,14 @@ import (
 	"time"
 )
 
-var MasterKey = kicrypt.SecureDH_genpair()
-var MasterKeyHash = strings.ToLower(base32.StdEncoding.EncodeToString(
-	kicrypt.InvariantHash(MasterKey.Public.Bytes())[:20]))
+var MasterKey = kiss.GenerateDHKeys()
+var MasterKeyHash = hash_base32(MasterKey.Public)
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
-	kiss.SetCipher(kicrypt.AS_aes256_ofb)
-	INFO("%v", MasterKey.Public.Bytes())
 	INFO("Kirisurf %s started! CPU count: %d, mkh=%s", version, runtime.NumCPU(), MasterKeyHash)
 	runtime.GOMAXPROCS(runtime.NumCPU() * 3)
 	set_gui_progress(0.1)

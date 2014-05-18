@@ -11,12 +11,13 @@ import (
 
 func sc_server_handler(wire net.Conn) error {
 	defer wire.Close()
-	owire, err := kiss.Kiriobfs_handshake_server(wire)
+	owire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
 		//log.Error(err.Error())
 		return err
 	}
-	awire, err := kiss.KiSS_handshake_server(owire, MasterKey)
+	awire, err := kiss.TransportHandshake(MasterKey, owire,
+		func([]byte) bool { return true })
 	if err != nil {
 		//log.Error(err.Error())
 		return err
@@ -36,7 +37,7 @@ func sc_server_handler(wire net.Conn) error {
 		if err != nil {
 			return err
 		}
-		remwire, err := kiss.Kiriobfs_handshake_client(actwire)
+		remwire, err := kiss.Obfs3fHandshake(actwire, false)
 		if err != nil {
 			return err
 		}
