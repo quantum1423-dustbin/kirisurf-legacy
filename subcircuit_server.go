@@ -13,7 +13,7 @@ import (
 func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 	defer func() {
 		if err != nil {
-			kilog.Debug("sc_server_handler returning err=%s", err.Error)
+			kilog.Debug("sc_server_handler returning err=%s", err.Error())
 		}
 	}()
 	defer wire.Close()

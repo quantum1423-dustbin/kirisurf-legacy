@@ -6,6 +6,7 @@ import (
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
+	"time"
 
 	"github.com/KirisurfProject/kilog"
 )
@@ -43,6 +44,8 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 			iwire.Close()
 			return nil, err
 		}
+
+		time.Sleep(time.Second)
 
 		verifier := pubkey_checker(ele.PublicKey)
 		// at this point wire is raw (well unobfs) connection to next
