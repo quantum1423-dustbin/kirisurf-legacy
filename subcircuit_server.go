@@ -25,11 +25,13 @@ func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 	wire, err = kiss.TransportHandshake(MasterKey, wire,
 		func([]byte) bool { return true })
 	if err != nil {
+		kilog.Debug("failed the transport handshake")
 		return err
 	}
 	thing := make([]byte, 1)
 	_, err = io.ReadFull(wire, thing)
 	if err != nil {
+		kilog.Debug("failed the readfull")
 		return err
 	}
 	if thing[0] == 0 {
@@ -61,7 +63,7 @@ func sc_server_handler(wire io.ReadWriteCloser) (err error) {
 		io.Copy(remm, wire)
 		remm.Close()
 	}
-	return nil
+	return io.EOF
 }
 
 type SCServer struct {
