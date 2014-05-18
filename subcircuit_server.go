@@ -2,58 +2,53 @@
 package main
 
 import (
-	"errors"
 	"io"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
 	"net"
-	"time"
-
-	"github.com/KirisurfProject/kilog"
 )
 
-func sc_server_handler(wire net.Conn) error {
+func sc_server_handler(wire io.ReadWriteCloser) error {
 	defer wire.Close()
-	time.Sleep(time.Second)
-	owire, err := kiss.Obfs3fHandshake(wire, true)
+	wire, err := kiss.Obfs3fHandshake(wire, true)
 	if err != nil {
 		//kilog.Debug(err.Error())
 		return err
 	}
-	kilog.Debug("yay!")
-	awire, err := kiss.TransportHandshake(MasterKey, owire,
+	wire, err = kiss.TransportHandshake(MasterKey, wire,
 		func([]byte) bool { return true })
 	if err != nil {
-		kilog.Debug(err.Error())
 		return err
 	}
-	// Now awire is the wire
-	cmd, err := read_sc_message(awire)
+	thing := make([]byte, 1)
+	_, err = io.ReadFull(wire, thing)
 	if err != nil {
-		WARNING(err.Error())
 		return err
 	}
-	kilog.Debug("%v", cmd)
-	if cmd.Msg_type == SC_EXTEND {
-
-		theirnode := dirclient.PKeyLookup(cmd.Msg_arg)
-		if theirnode == nil {
-			return errors.New("Watif")
+	if thing[0] == 0 {
+		// Terminate
+		if !MasterConfig.General.IsExit {
+			return nil
 		}
-		actwire, err := net.Dial("tcp", theirnode.Address)
+		e2e_server_handler(wire)
+	} else {
+		xaxa := make([]byte, thing[0])
+		_, err := io.ReadFull(wire, xaxa)
 		if err != nil {
-			kilog.Debug(err.Error())
+			return err
+		}
+		key := string(xaxa)
+		qqq := dirclient.PKeyLookup(key)
+		remm, err := net.Dial("tcp", qqq.Address)
+		if err != nil {
 			return err
 		}
 		go func() {
-			io.Copy(actwire, awire)
-			actwire.Close()
+			io.Copy(wire, remm)
+			wire.Close()
 		}()
-		io.Copy(awire, actwire)
-		awire.Close()
-	} else if cmd.Msg_type == SC_TERMINATE && MasterConfig.General.IsExit {
-		kilog.Debug("SC_TERMINATE received")
-		e2e_server_handler(awire)
+		io.Copy(remm, wire)
+		remm.Close()
 	}
 	return nil
 }
