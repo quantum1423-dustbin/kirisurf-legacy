@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 const (
@@ -64,5 +66,6 @@ func RunRelay(port int, keyhash string, isexit bool) {
 			}
 			continue
 		}
+		kilog.Debug("Xaxa, longpoll!")
 	}
 }
