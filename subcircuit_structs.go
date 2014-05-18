@@ -20,11 +20,13 @@ func read_sc_message(thing io.Reader) (sc_message, error) {
 	var toret sc_message
 	mslen := make([]byte, 1)
 	_, err := io.ReadFull(thing, mslen)
+	kilog.Debug("read mslen=%d", mslen[0])
 	if err != nil {
 		return toret, err
 	}
 	arg := make([]byte, mslen[0])
 	_, err = io.ReadFull(thing, arg)
+	kilog.Debug("read remaining")
 	if err != nil {
 		return toret, err
 	}
