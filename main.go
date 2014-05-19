@@ -23,7 +23,7 @@ var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
 	flag.Parse()
-	if confloc == "" {
+	if *confloc == "" {
 		kilog.Warning("No configuration file given, using defaults")
 	} else {
 		err := gcfg.ReadFileInto(&MasterConfig, *confloc)
