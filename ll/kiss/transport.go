@@ -20,6 +20,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	verify func([]byte) bool) (io.ReadWriteCloser, error) {
 
 	eph_keypair := dh_gen_key(2048)
+	done := make(chan bool)
 	go func() {
 		// Send longterm public key
 		_, err := wire.Write(keypair.Public)
@@ -31,6 +32,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 		if err != nil {
 			return
 		}
+		done <- true
 	}()
 	// Read longterm public key
 	their_pubkey := make([]byte, 2048/8)
@@ -56,7 +58,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	the_secret := KeyedHash(secret, []byte("KiSS_1.0"))
 	xaxa := new([32]byte)
 	copy(xaxa[:], the_secret)
-
+	<-done
 	return MessToStream(&kiss_mess_ctx{&chugger{xaxa}, wire}), nil
 }
 
