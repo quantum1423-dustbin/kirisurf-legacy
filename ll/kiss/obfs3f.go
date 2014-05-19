@@ -62,7 +62,7 @@ func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteClose
 		xaxa := make([]byte, rlint)
 		toret.Write(randlen)
 		toret.Write(xaxa)
-		thing <- done
+		thing <- true
 	}()
 
 	randlen := make([]byte, 2)
