@@ -26,7 +26,7 @@ func main() {
 	if confloc == nil {
 		kilog.Warning("No configuration file given, using defaults")
 	} else {
-		err := gcfg.ReadFileInto(&MasterConfig, confloc)
+		err := gcfg.ReadFileInto(&MasterConfig, *confloc)
 		if err != nil {
 			kilog.Warning("Configuration file broken, using defaults")
 		}
