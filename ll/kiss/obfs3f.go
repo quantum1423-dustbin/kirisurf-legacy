@@ -54,7 +54,7 @@ func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteClose
 	write_rc4.XORKeyStream(make([]byte, 8192), make([]byte, 8192))
 
 	toret := &Obfs3f{read_rc4, write_rc4, wire}
-
+	thing := make(chan bool)
 	go func() {
 		randlen := make([]byte, 2)
 		rand.Read(randlen)
@@ -62,6 +62,7 @@ func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteClose
 		xaxa := make([]byte, rlint)
 		toret.Write(randlen)
 		toret.Write(xaxa)
+		thing <- done
 	}()
 
 	randlen := make([]byte, 2)
@@ -73,7 +74,7 @@ func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteClose
 	if err != nil {
 		return nil, err
 	}
-
+	<-thing
 	return io.ReadWriteCloser(toret), nil
 }
 
