@@ -3,6 +3,7 @@ package onionstew
 import (
 	"io"
 	"math/rand"
+	"time"
 
 	"github.com/KirisurfProject/kilog"
 )
@@ -34,14 +35,17 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			}
 			// Check for the dead seqnum
 			if newpkt.seqnum == 0xFFFFFFFFFFFFFFFF {
-				kilog.Debug("Close message received from remote in AttachSC, signalling...")
+				kilog.Debug("Close message received from remote in AttachSC on %x, signalling...", id)
 				if serverside {
 					local_stop <- true
 					kilog.Debug("Close signal successful, sending bakk and returning from %x.", id)
 					clmsg := sc_message{0xFFFFFFFFFFFFFFFF, []byte("")}
 					write_sc_message(clmsg, wire)
+					time.Sleep(time.Second * 10)
+					wire.Close()
+				} else {
+					wire.Close()
 				}
-				wire.Close()
 				return
 			}
 			select {
