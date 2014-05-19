@@ -61,6 +61,7 @@ func main() {
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
 		go dirclient.RunRelay(prt, MasterKeyHash,
 			MasterConfig.General.IsExit)
+		set_gui_progress(1.0)
 		INFO("Bootstrapping 100%%: server started!")
 		for {
 			time.Sleep(time.Second * 10)

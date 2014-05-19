@@ -59,6 +59,8 @@ func run_client_loop() {
 			enfreshen_scb()
 		}
 	}()
+	set_gui_progress(1.0)
+	INFO("Bootstrapping 100%%: client started!")
 	for {
 		nconn, err := listener.Accept()
 		if err != nil {

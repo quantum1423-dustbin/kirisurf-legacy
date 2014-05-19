@@ -2,6 +2,7 @@ package kiss
 
 import (
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/rc4"
 	"io"
 )
@@ -53,6 +54,25 @@ func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteClose
 	write_rc4.XORKeyStream(make([]byte, 8192), make([]byte, 8192))
 
 	toret := &Obfs3f{read_rc4, write_rc4, wire}
+
+	go func() {
+		randlen := make([]byte, 2)
+		rand.Read(randlen)
+		rlint := int(randlen[0])*256 + int(randlen[1])
+		xaxa := make([]byte, rlint)
+		toret.Write(randlen)
+		toret.Write(xaxa)
+	}()
+
+	randlen := make([]byte, 2)
+	_, err := io.ReadFull(toret, randlen)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.ReadFull(toret, make([]byte, int(randlen[0])*256+int(randlen[1])))
+	if err != nil {
+		return nil, err
+	}
 
 	return io.ReadWriteCloser(toret), nil
 }
