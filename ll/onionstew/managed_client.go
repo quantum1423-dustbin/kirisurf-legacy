@@ -50,12 +50,12 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 		for {
 			// Sleep between 1 and 64 seconds
 			select {
-			case <-time.After(time.Second * 4):
+			case <-time.After(time.Second * time.Duration(1+rand256()%64)):
 			case <-toret.underlying.killswitch:
 				return
 			}
 			octr := ctr
-			if ctr < 3 {
+			if ctr < 8 {
 				// Too little subcircuits, add one!
 				sc := sc_generate()
 				_, err := sc.Write(toret.stew_id)
@@ -64,7 +64,7 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 				}
 				go toret.underlying.llctx.AttachSC(sc, false)
 				ctr++
-			} else if ctr > 5 {
+			} else if ctr > 32 {
 				// Too many subcircuits, remove one!
 				close(<-toret.underlying.llctx.close_ch_ch)
 				ctr--

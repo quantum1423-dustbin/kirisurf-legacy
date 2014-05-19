@@ -9,17 +9,28 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"code.google.com/p/gcfg"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 var MasterKey = kiss.GenerateDHKeys()
 var MasterKeyHash = hash_base32(MasterKey.Public)
 
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var confloc = flag.String("c", "", "config location")
 
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
-
+	flag.Parse()
+	if confloc == nil {
+		kilog.Warning("No configuration file given, using defaults")
+	} else {
+		err := gcfg.ReadFileInto(&MasterConfig, confloc)
+		if err != nil {
+			kilog.Warning("Configuration file broken, using defaults")
+		}
+	}
 	INFO("Kirisurf %s started! mkh=%s", version, MasterKeyHash)
 	go func() {
 		for {
