@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"crypto/subtle"
+	"encoding/binary"
 
 	"code.google.com/p/go.crypto/salsa20"
 )
@@ -13,10 +14,17 @@ import (
 // Salsa20+HMAC-SHA1 is used.
 
 type chugger struct {
-	key *[32]byte
+	key       *[32]byte
+	read_num  uint64
+	write_num uint64
 }
 
 func (ctx *chugger) Seal(pt []byte) []byte {
+	seq := make([]byte, 8)
+	binary.BigEndian.PutUint64(seq, ctx.write_num)
+	pt = append(seq, pt...)
+	ctx.read_num++
+
 	toret := make([]byte, 24+20+len(pt))
 	rand.Read(toret[:24])
 	nonce := toret[:24]
@@ -44,6 +52,12 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 	hypo_sum := pt[:20]
 
 	if subtle.ConstantTimeCompare(actual_sum, hypo_sum) == 1 {
+		seq := make([]byte, 8)
+		binary.BigEndian.PutUint64(seq, ctx.read_num)
+		ctx.read_num++
+		if subtle.ConstantTimeCompare(seq, pt[20:][:8]) != 1 {
+			return nil, ErrMacNoMatch
+		}
 		return pt[20:], nil
 	}
 	return nil, ErrMacNoMatch

@@ -59,7 +59,7 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	xaxa := new([32]byte)
 	copy(xaxa[:], the_secret)
 	<-done
-	return MessToStream(&kiss_mess_ctx{&chugger{xaxa}, wire}), nil
+	return MessToStream(&kiss_mess_ctx{&chugger{xaxa, 0, 0}, wire}), nil
 }
 
 // KiSS transport is simply 2 bytes BE length + payload.

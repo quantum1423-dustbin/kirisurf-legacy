@@ -7,16 +7,8 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-func (ctx *stew_ctx) attacht_client(client io.ReadWriteCloser) {
+func (ctx *stew_ctx) attacht_client(client io.ReadWriteCloser, tgt string) {
 	defer client.Close()
-
-	// Read the socks first
-	tgt, err := socks5_handshake(client)
-	if err != nil {
-		return
-	}
-
-	kilog.Debug("SOCKS5 handshake done to %s", tgt)
 
 	// We need to find an appropriate channel slot first!
 	connid := <-ctx.number_ch

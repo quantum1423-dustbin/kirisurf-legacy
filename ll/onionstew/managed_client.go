@@ -14,10 +14,11 @@ import (
 // All other operations are automated.
 
 type ManagedClient struct {
-	stew_id     []byte
-	underlying  *stew_ctx
-	client_chan chan io.ReadWriteCloser
-	DeadChan    chan bool
+	stew_id          []byte
+	underlying       *stew_ctx
+	client_chan      chan io.ReadWriteCloser
+	client_addr_chan chan string
+	DeadChan         chan bool
 }
 
 func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, error) {
@@ -32,6 +33,7 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 	rand.Reader.Read(toret.stew_id)
 	toret.underlying = make_stew_ctx()
 	toret.client_chan = make(chan io.ReadWriteCloser)
+	toret.client_addr_chan = make(chan string)
 	toret.DeadChan = toret.underlying.killswitch
 	go toret.underlying.run_stew(false)
 
@@ -96,7 +98,8 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 				toret.underlying.destroy()
 				return
 			}
-			go toret.underlying.attacht_client(client)
+			remaddr := <-toret.client_addr_chan
+			go toret.underlying.attacht_client(client, remaddr)
 		}
 	}()
 	return toret, nil
@@ -106,6 +109,7 @@ func (thing *ManagedClient) Destroy() {
 	close(thing.client_chan)
 }
 
-func (thing *ManagedClient) AddClient(ga io.ReadWriteCloser) {
+func (thing *ManagedClient) AddClient(ga io.ReadWriteCloser, remaddr string) {
 	thing.client_chan <- ga
+	thing.client_addr_chan <- remaddr
 }

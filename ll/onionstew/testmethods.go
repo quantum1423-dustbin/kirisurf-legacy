@@ -12,28 +12,29 @@ import (
 )
 
 func test_socks_client() {
-	generator := func() io.ReadWriteCloser {
-		toret, err := net.Dial("tcp", "oozora.servers.kirisurf.org:5555")
+	return /*
+		generator := func() io.ReadWriteCloser {
+			toret, err := net.Dial("tcp", "oozora.servers.kirisurf.org:5555")
+			if err != nil {
+				panic(err.Error())
+			}
+			return toret
+		}
+		haha, err := MakeManagedClient(generator)
 		if err != nil {
 			panic(err.Error())
 		}
-		return toret
-	}
-	haha, err := MakeManagedClient(generator)
-	if err != nil {
-		panic(err.Error())
-	}
-	listener, err := net.Listen("tcp", "127.0.0.1:6666")
-	if err != nil {
-		panic(err.Error())
-	}
-	for {
-		thing, err := listener.Accept()
+		listener, err := net.Listen("tcp", "127.0.0.1:6666")
 		if err != nil {
-			continue
+			panic(err.Error())
 		}
-		haha.AddClient(thing)
-	}
+		for {
+			thing, err := listener.Accept()
+			if err != nil {
+				continue
+			}
+			haha.AddClient(thing)
+		}*/
 }
 
 func RunManagedStewServer() string {

@@ -43,11 +43,6 @@ func (ctx *stew_ctx) run_stew(is_server bool) {
 				kilog.Warning("Illegal stew_message received: %s, %x (is_server=%b)",
 					fmt.Sprint(pkt), pkt.bytes(), is_server)
 			}
-		case client := <-ctx.client_ch:
-			if is_server {
-				panic("Why the hell did you write to client_ch as a SERVER?!?!?")
-			}
-			go ctx.attacht_client(client)
 		}
 	}
 }
