@@ -23,7 +23,7 @@ func BenchmarkChacha20(b *testing.B) {
 func BenchmarkChugger(b *testing.B) {
 	val := make([]byte, 1024)
 	var key = new([32]byte)
-	gaga := &chugger{key}
+	gaga := &chugger{key, 0, 0}
 	for i := 0; i < b.N; i++ {
 		gaga.Seal(val)
 	}
@@ -31,8 +31,8 @@ func BenchmarkChugger(b *testing.B) {
 
 func TestChugger(t *testing.T) {
 	var key = new([32]byte)
-	gaga := &chugger{key}
-	dada := &chugger{key}
+	gaga := &chugger{key, 0, 0}
+	dada := &chugger{key, 0, 0}
 	pt := []byte("Hello world!")
 	ct := gaga.Seal(pt)
 	pt2, err := dada.Open(ct)

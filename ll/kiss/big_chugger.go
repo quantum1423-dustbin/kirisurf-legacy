@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/binary"
+	"fmt"
 
 	"code.google.com/p/go.crypto/salsa20"
 )
@@ -56,9 +57,10 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 		binary.BigEndian.PutUint64(seq, ctx.read_num)
 		ctx.read_num++
 		if subtle.ConstantTimeCompare(seq, pt[20:][:8]) != 1 {
+			fmt.Println(seq, pt[20:][:8])
 			return nil, ErrMacNoMatch
 		}
-		return pt[20:], nil
+		return pt[20:][8:], nil
 	}
 	return nil, ErrMacNoMatch
 }
