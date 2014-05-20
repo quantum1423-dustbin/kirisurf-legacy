@@ -24,7 +24,7 @@ func (ctx *chugger) Seal(pt []byte) []byte {
 	seq := make([]byte, 8)
 	binary.BigEndian.PutUint64(seq, ctx.write_num)
 	pt = append(seq, pt...)
-	ctx.read_num++
+	ctx.write_num++
 
 	toret := make([]byte, 24+20+len(pt))
 	rand.Read(toret[:24])

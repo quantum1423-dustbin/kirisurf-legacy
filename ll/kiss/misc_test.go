@@ -34,13 +34,15 @@ func TestChugger(t *testing.T) {
 	gaga := &chugger{key, 0, 0}
 	dada := &chugger{key, 0, 0}
 	pt := []byte("Hello world!")
-	ct := gaga.Seal(pt)
-	pt2, err := dada.Open(ct)
-	if err != nil {
-		panic(err)
-	}
-	if string(pt) != string(pt2) {
-		t.Fail()
+	for i := 0; i < 100; i++ {
+		ct := gaga.Seal(pt)
+		pt2, err := dada.Open(ct)
+		if err != nil {
+			panic(err)
+		}
+		if string(pt) != string(pt2) {
+			t.Fail()
+		}
 	}
 }
 
