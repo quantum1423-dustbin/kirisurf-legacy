@@ -10,8 +10,9 @@ import (
 // no ugly things involving keys on both sides happen.
 
 type kiss_mess_ctx struct {
-	crypter    *chugger
-	underlying io.ReadWriteCloser
+	read_crypter  *chugger
+	write_crypter *chugger
+	underlying    io.ReadWriteCloser
 }
 
 // KiSS handshake
@@ -55,11 +56,21 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	secret1 := dh_gen_secret(keypair.Private, their_pubkey)
 	secret2 := dh_gen_secret(eph_keypair.Private, their_eph_pubkey)
 	secret := append(secret1, secret2...)
-	the_secret := KeyedHash(secret, []byte("KiSS_1.0"))
-	xaxa := new([32]byte)
-	copy(xaxa[:], the_secret)
+
+	// Generate r and w secrets by appending THEIR eph pubkey for w, and OUR eph pubkey for r
+	write_secret := append(secret, their_eph_pubkey...)
+	read_secret := append(secret, eph_keypair.Public...)
+
+	write_key := KeyedHash(write_secret, []byte("KiSS-1.0"))
+	read_key := KeyedHash(read_secret, []byte("KiSS-1.0"))
+
+	readk := new([32]byte)
+	copy(readk[:], read_key)
+	writek := new([32]byte)
+	copy(writek[:], write_key)
 	<-done
-	return MessToStream(&kiss_mess_ctx{&chugger{xaxa, 0, 0}, wire}), nil
+	return MessToStream(&kiss_mess_ctx{&chugger{readk, 0, 0},
+		&chugger{writek, 0, 0}, wire}), nil
 }
 
 // KiSS transport is simply 2 bytes BE length + payload.
@@ -76,7 +87,7 @@ func (ctx *kiss_mess_ctx) Read(p []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	toret, err := ctx.crypter.Open(payload)
+	toret, err := ctx.read_crypter.Open(payload)
 	if err != nil {
 		return 0, err
 	}
@@ -89,7 +100,7 @@ func (ctx *kiss_mess_ctx) Read(p []byte) (int, error) {
 
 func (ctx *kiss_mess_ctx) Write(p []byte) (int, error) {
 	lenthing := make([]byte, 2)
-	crypted := ctx.crypter.Seal(p)
+	crypted := ctx.write_crypter.Seal(p)
 	lenthing[0], lenthing[1] = byte(len(crypted)/256), byte(len(crypted)%256)
 	_, err := ctx.underlying.Write(lenthing)
 	if err != nil {

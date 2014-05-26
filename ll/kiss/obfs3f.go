@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"crypto/rc4"
 	"io"
+	"net"
+	"time"
 )
 
 // This file implements obfs3f, a lighter and less fingerprinty derivative of Tor's obfs3.
@@ -16,10 +18,10 @@ import (
 type Obfs3f struct {
 	read_rc4   cipher.Stream
 	write_rc4  cipher.Stream
-	underlying io.ReadWriteCloser
+	underlying net.Conn
 }
 
-func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteCloser, error) {
+func Obfs3fHandshake(wire net.Conn, is_server bool) (io.ReadWriteCloser, error) {
 	var their_public dh_public_key
 	var our_keypair = dh_gen_key(1536)
 	var secret []byte
@@ -79,6 +81,7 @@ func Obfs3fHandshake(wire io.ReadWriteCloser, is_server bool) (io.ReadWriteClose
 }
 
 func (thing *Obfs3f) Write(p []byte) (int, error) {
+	thing.underlying.SetWriteDeadline(time.Now().Add(time.Second * 120))
 	xaxa := make([]byte, len(p))
 	copy(xaxa, p)
 	thing.write_rc4.XORKeyStream(xaxa, xaxa)
@@ -86,6 +89,7 @@ func (thing *Obfs3f) Write(p []byte) (int, error) {
 }
 
 func (thing *Obfs3f) Read(p []byte) (int, error) {
+	thing.underlying.SetReadDeadline(time.Now().Add(time.Second * 120))
 	n, err := thing.underlying.Read(p)
 	if err != nil {
 		return 0, err

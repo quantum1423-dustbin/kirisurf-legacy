@@ -6,6 +6,7 @@ import "net/http"
 // That is, it serves JSON etc to the interface on port 53100.
 
 func init() {
+	return
 	go func() {
 		http.HandleFunc("/traffic_stats", webface_traffic_json)
 		http.HandleFunc("/directory_info", webface_directoryinfo_json)

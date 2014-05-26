@@ -57,7 +57,7 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 				return
 			}
 			octr := ctr
-			if ctr < 8 {
+			if ctr < 3 {
 				// Too little subcircuits, add one!
 				sc := sc_generate()
 				_, err := sc.Write(toret.stew_id)
@@ -66,7 +66,7 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 				}
 				go toret.underlying.llctx.AttachSC(sc, false)
 				ctr++
-			} else if ctr > 32 {
+			} else if ctr > 12 {
 				// Too many subcircuits, remove one!
 				close(<-toret.underlying.llctx.close_ch_ch)
 				ctr--
