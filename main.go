@@ -22,6 +22,7 @@ var confloc = flag.String("c", "", "config location")
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
+	go run_monitor_loop()
 	flag.Parse()
 	if *confloc == "" {
 		kilog.Warning("No configuration file given, using defaults")

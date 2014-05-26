@@ -8,6 +8,8 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
+import cryptorand "crypto/rand"
+
 func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 	kilog.Debug("AttachSC(%v)", serverside)
 	ctx.lock.Lock()
@@ -71,6 +73,19 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 					err.Error())
 				ctx.destroy()
 				// Will die on next iteration
+			}
+			xaxa := make([]byte, 1)
+			cryptorand.Read(xaxa)
+			for len(newthing.payload) < 1024 && xaxa[0] < 128 {
+				cryptorand.Read(xaxa)
+				xaxa := sc_message{0xFFFFFFFFFFFFFFFE, make([]byte, xaxa[0])}
+				err := write_sc_message(xaxa, wire)
+				if err != nil {
+					kilog.Warning("AttachSC encountered unexpected error %s while WRITING KA, DESTROYING STEW",
+						err.Error())
+					ctx.destroy()
+					// Will die on next iteration
+				}
 			}
 		case <-local_stop:
 			return
