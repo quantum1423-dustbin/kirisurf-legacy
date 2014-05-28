@@ -79,15 +79,18 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			if false {
 				xaxa := make([]byte, 1)
 				cryptorand.Read(xaxa)
+				tosend := make([]byte, 0)
 				for len(newthing.payload) < 1024 && xaxa[0] < 128 {
-					cryptorand.Read(xaxa)
-					xaxa := sc_message{0xFFFFFFFFFFFFFFFE, make([]byte, xaxa[0])}
-					err := write_sc_message(xaxa, wire)
+					tosend = append(tosend, make([]byte, xaxa[0])...)
+				}
+				qaqa := sc_message{0xFFFFFFFFFFFFFFFE, tosend}
+				if len(tosend) != 0 {
+					err := write_sc_message(qaqa, wire)
 					if err != nil {
-						kilog.Warning("AttachSC encountered unexpected error %s while WRITING KA, DESTROYING STEW",
+						kilog.Warning(
+							"AttachSC encountered unexpected error %s while WRITING KA, DESTROYING STEW",
 							err.Error())
 						ctx.destroy()
-						// Will die on next iteration
 					}
 				}
 			}

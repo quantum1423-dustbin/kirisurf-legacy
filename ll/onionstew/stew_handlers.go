@@ -120,7 +120,7 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 		}
 	}()
 
-	buff := make([]byte, 4096)
+	buff := make([]byte, 3072)
 	// Read from socket
 	for {
 		select {

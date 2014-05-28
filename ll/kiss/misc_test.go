@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 	"unsafe"
+	"code.google.com/p/go.crypto/ripemd160"
 
 	"github.com/codahale/chacha20"
 	"github.com/dchest/blake256"
@@ -66,6 +67,15 @@ func BenchmarkSHA1HMAC(b *testing.B) {
 	val := make([]byte, 1024)
 	for i := 0; i < b.N; i++ {
 		yuyu := hmac.New(sha1.New, make([]byte, 16))
+		yuyu.Write(val)
+		yuyu.Sum(nil)
+	}
+}
+
+func BenchmarkRIPEMD160HMAC(b *testing.B) {
+	val := make([]byte, 1024)
+	for i := 0; i < b.N; i++ {
+		yuyu := hmac.New(ripemd160.New, make([]byte, 16))
 		yuyu.Write(val)
 		yuyu.Sum(nil)
 	}

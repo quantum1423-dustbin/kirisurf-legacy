@@ -33,6 +33,7 @@ func enfreshen_scb() {
 		sc, err := build_subcircuit(xaxa)
 		if err != nil {
 			kilog.Warning("What? %v", err.Error())
+			time.Sleep(time.Second)
 			goto retry
 		}
 		return sc
