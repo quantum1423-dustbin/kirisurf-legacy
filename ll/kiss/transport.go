@@ -64,13 +64,13 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	write_key := KeyedHash(write_secret, []byte("KiSS-1.0"))
 	read_key := KeyedHash(read_secret, []byte("KiSS-1.0"))
 
-	readk := new([32]byte)
+	readk := make([]byte, 16)
 	copy(readk[:], read_key)
-	writek := new([32]byte)
+	writek := make([]byte, 16)
 	copy(writek[:], write_key)
 	<-done
-	return MessToStream(&kiss_mess_ctx{&chugger{readk, 0, 0},
-		&chugger{writek, 0, 0}, wire}), nil
+	return MessToStream(&kiss_mess_ctx{make_chugger(readk),
+		make_chugger(writek), wire}), nil
 }
 
 // KiSS transport is simply 2 bytes BE length + payload.
