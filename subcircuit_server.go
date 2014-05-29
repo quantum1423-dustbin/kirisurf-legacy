@@ -47,13 +47,14 @@ func sc_server_handler(_wire net.Conn) (err error) {
 			return err
 		}
 		key := string(xaxa)
-	retry:
 		qqq := dirclient.PKeyLookup(key)
 		if qqq == nil {
 			kilog.Debug("Cannot find %s in %v", xaxa, dirclient.KDirectory)
 			dirclient.RefreshDirectory()
-			goto retry
-			return nil
+			qqq = dirclient.PKeyLookup(key)
+			if qqq == nil {
+				return nil
+			}
 		}
 		kilog.Debug("Continuing to %s", qqq.Address)
 		rem, err := net.Dial("tcp", qqq.Address)
