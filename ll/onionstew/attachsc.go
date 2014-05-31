@@ -76,7 +76,7 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			}
 
 			//TODO: Make this not tie up the connection
-			if false {
+			if true {
 				xaxa := make([]byte, 1)
 				cryptorand.Read(xaxa)
 				tosend := make([]byte, 0)
