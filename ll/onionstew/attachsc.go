@@ -82,6 +82,7 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 				tosend := make([]byte, 0)
 				for len(newthing.payload) < 1024 && xaxa[0] < 128 {
 					tosend = append(tosend, make([]byte, xaxa[0])...)
+					cryptorand.Read(xaxa)
 				}
 				qaqa := sc_message{0xFFFFFFFFFFFFFFFE, tosend}
 				if len(tosend) != 0 {
