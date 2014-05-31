@@ -21,18 +21,20 @@ func enfreshen_scb() {
 	if theBigContext != nil {
 		<-theBigContext.DeadChan
 	}
-retry:
 	// Refresh the directory & viable nodes
 	dirclient.RefreshDirectory()
 	viableNodes = dirclient.FindPathGroup(MasterConfig.Network.MinCircuitLen)
 
 	// Function for returnings of one stronk subcircuit
 	gen_subcircuit := func() io.ReadWriteCloser {
+	retry:
 		xaxa := viableNodes[rand.Int()%16]
 		sc, err := build_subcircuit(xaxa)
 		if err != nil {
 			kilog.Warning("What? %v", err.Error())
 			time.Sleep(time.Second)
+			dirclient.RefreshDirectory()
+			viableNodes = dirclient.FindPathGroup(MasterConfig.Network.MinCircuitLen)
 			goto retry
 		}
 		return sc
