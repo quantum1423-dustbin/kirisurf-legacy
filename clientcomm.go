@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"sync"
+
+	"kirisurf/ll/onionstew"
 )
 
 var global_monitor_chan = make(chan []byte, 16)
@@ -33,6 +35,27 @@ func incr_down_bytes(delta int) {
 	}
 }
 
+func incr_down_overhead_bytes(delta int) {
+	global_locker.Lock()
+	global_down_bytes += delta
+	global_locker.Unlock()
+	msg := []byte(fmt.Sprintf("(incr-download-overhead %d)\n", delta))
+	select {
+	case global_monitor_chan <- msg:
+	default:
+	}
+}
+func incr_up_overhead_bytes(delta int) {
+	global_locker.Lock()
+	global_down_bytes += delta
+	global_locker.Unlock()
+	msg := []byte(fmt.Sprintf("(incr-upload-overhead %d)\n", delta))
+	select {
+	case global_monitor_chan <- msg:
+	default:
+	}
+}
+
 func incr_up_bytes(delta int) {
 	global_locker.Lock()
 	global_up_bytes += delta
@@ -45,6 +68,11 @@ func incr_up_bytes(delta int) {
 }
 
 func run_monitor_loop() {
+	onionstew.DownloadIncrement = incr_down_bytes
+	onionstew.DownloadOverheadIncrement = incr_down_overhead_bytes
+	onionstew.UploadIncrement = incr_up_bytes
+	onionstew.UploadOverheadIncrement = incr_down_overhead_bytes
+
 	listener, err := net.Listen("tcp", "127.0.0.1:9221")
 	if err != nil {
 		panic(err.Error())
