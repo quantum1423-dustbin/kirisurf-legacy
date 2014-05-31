@@ -33,7 +33,6 @@ func (ctx *stew_ctx) run_stew(is_server bool) {
 				ctx.lock.RUnlock()
 				if ch == nil {
 					kilog.Debug("stew_message with illegal connid received, killing connid")
-					ctx.write_ch <- stew_message{m_close, pkt.connid, []byte("")}
 					continue
 				}
 				ch <- pkt
