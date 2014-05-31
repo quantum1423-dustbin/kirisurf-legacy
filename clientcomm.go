@@ -71,7 +71,7 @@ func run_monitor_loop() {
 	onionstew.DownloadIncrement = incr_down_bytes
 	onionstew.DownloadOverheadIncrement = incr_down_overhead_bytes
 	onionstew.UploadIncrement = incr_up_bytes
-	onionstew.UploadOverheadIncrement = incr_down_overhead_bytes
+	onionstew.UploadOverheadIncrement = incr_up_overhead_bytes
 
 	listener, err := net.Listen("tcp", "127.0.0.1:9221")
 	if err != nil {
