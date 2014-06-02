@@ -15,7 +15,7 @@ type DHKeys struct {
 }
 
 func dh_gen_secret(our_private dh_private_key, their_public dh_public_key) []byte {
-	// Constant time when completes within 500 ms
+	// Constant time when completes within 250 ms
 	retchan := make(chan []byte)
 
 	go func() {
@@ -33,7 +33,7 @@ func dh_gen_secret(our_private dh_private_key, their_public dh_public_key) []byt
 		retchan <- big.NewInt(0).Exp(big.NewInt(0).SetBytes(their_public),
 			big.NewInt(0).SetBytes(our_private), group).Bytes()
 	}()
-	<-time.After(time.Second / 2)
+	<-time.After(time.Second / 4)
 	return <-retchan
 }
 
@@ -42,7 +42,7 @@ func GenerateDHKeys() DHKeys {
 }
 
 func dh_gen_key(bitlen int) DHKeys {
-	// Constant time when completes within 500 ms
+	// Constant time when completes within 250 ms
 	retchan := make(chan DHKeys)
 	go func() {
 		// checks
@@ -82,6 +82,6 @@ func dh_gen_key(bitlen int) DHKeys {
 
 		retchan <- DHKeys{pub, priv}
 	}()
-	<-time.After(time.Second / 2)
+	<-time.After(time.Second / 4)
 	return <-retchan
 }

@@ -23,7 +23,7 @@ func BenchmarkChacha20(b *testing.B) {
 
 func BenchmarkChugger(b *testing.B) {
 	val := make([]byte, 1024)
-	var key = make([]byte, 32)
+	var key = make([]byte, 56)
 	gaga := make_chugger(key)
 	for i := 0; i < b.N; i++ {
 		gaga.Seal(val)

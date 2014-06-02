@@ -6,6 +6,8 @@ import (
 	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/binary"
+
+	"code.google.com/p/go.crypto/blowfish"
 )
 
 // This file implements the Grand Central Chugger, which handles stream authentication
@@ -20,7 +22,7 @@ type chugger struct {
 
 func (ctx *chugger) Seal(pt []byte) []byte {
 	seq := make([]byte, 8)
-	binary.BigEndian.PutUint64(seq, ctx.write_num)
+	binary.LittleEndian.PutUint64(seq, ctx.write_num)
 	ctx.write_num++
 
 	toret := make([]byte, 20+len(pt))
@@ -40,12 +42,12 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 		return nil, ErrPacketTooShort
 	}
 	seq := make([]byte, 8)
-	binary.BigEndian.PutUint64(seq, ctx.read_num)
+	binary.LittleEndian.PutUint64(seq, ctx.read_num)
 	ctx.read_num++
 
 	pt := make([]byte, len(ct))
 	ctx.streamer.XORKeyStream(pt, ct)
-	xaxa := hmac.New(sha1.New, ctx.key[:])
+	xaxa := hmac.New(sha1.New, ctx.key)
 	xaxa.Write(pt[20:])
 	xaxa.Write(seq)
 	actual_sum := xaxa.Sum(nil)
@@ -58,7 +60,7 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 }
 
 func make_chugger(key []byte) *chugger {
-	state := make_tea(key)
+	state, _ := blowfish.NewCipher(key)
 	streamer := cipher.NewCTR(state, make([]byte, state.BlockSize()))
 	return &chugger{streamer, key, 0, 0}
 }

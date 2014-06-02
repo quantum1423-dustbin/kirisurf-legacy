@@ -23,7 +23,8 @@ func run_single_kiss_echo(addr string) {
 	if err != nil {
 		panic(err.Error())
 	}
-	xaxa, err = TransportHandshake(dh_gen_key(2048), xaxa, func([]byte) bool { return true })
+	xaxa, err = TransportHandshake(dh_gen_key(2048), xaxa,
+		func([]byte) bool { return true })
 	xaxa, err = TransportHandshake(dh_gen_key(2048), xaxa,
 		func([]byte) bool { return true })
 	xaxa, err = TransportHandshake(dh_gen_key(2048), xaxa,
