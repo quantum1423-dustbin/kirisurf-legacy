@@ -130,9 +130,7 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 		default:
 			n, err := socket.Read(buff)
 			if err != nil {
-				if err == io.EOF {
-					kilog.Debug("Socket closed.")
-				}
+				kilog.Debug("Socket closed. (%s)", err.Error())
 				return
 			}
 			thing := make([]byte, n)
