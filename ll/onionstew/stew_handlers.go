@@ -101,9 +101,7 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 				return
 			case newpkt := <-read_ch:
 				if newpkt.category == m_close {
-					kilog.Debug("Closing an encapsulated socket...")
 					socket.Close()
-					kilog.Debug("Close() returned")
 					this_close()
 					return
 				}
@@ -143,12 +141,10 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 		case <-ctx.killswitch:
 			return
 		case <-local_close:
-			kilog.Debug("Socket closed.")
 			return
 		default:
 			n, err := socket.Read(buff)
 			if err != nil {
-				kilog.Debug("Socket closed. (%s)", err.Error())
 				return
 			}
 			thing := make([]byte, n)
@@ -166,7 +162,6 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 				case <-ctx.killswitch:
 					return
 				case <-local_close:
-					kilog.Debug("Socket closed.")
 					return
 				}
 			}
@@ -175,7 +170,6 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 				return
 			case ctx.write_ch <- msg:
 			case <-local_close:
-				kilog.Debug("Socket closed.")
 				return
 			}
 		}
