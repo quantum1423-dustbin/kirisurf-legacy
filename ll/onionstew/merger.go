@@ -12,7 +12,7 @@ func reorder_messages(input, output chan sc_message) {
 			return
 		}
 		buffer[thing.seqnum] = thing
-		if len(buffer) > 10000 {
+		if len(buffer) > 4096 {
 			kilog.Critical("reorder_messages buffer blown")
 			return
 		}
