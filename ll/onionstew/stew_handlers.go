@@ -33,14 +33,18 @@ func (ctx *stew_ctx) attacht_client(client io.ReadWriteCloser, tgt string) {
 
 func (ctx *stew_ctx) attacht_remote(remote_addr string, connid int) {
 	remconn, err := net.Dial("tcp", remote_addr)
+	xaxa := (remconn).(*net.TCPConn)
+	xaxa.SetLinger(0)
+	xaxa.SetNoDelay(true)
+
 	if err != nil {
 		kilog.Debug("attacht_remote failed to connect to %d!", remote_addr)
 		return
 	}
 
-	defer remconn.Close()
+	defer xaxa.Close()
 
-	tunnel_connection(ctx, connid, remconn)
+	tunnel_connection(ctx, connid, xaxa)
 }
 
 func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
