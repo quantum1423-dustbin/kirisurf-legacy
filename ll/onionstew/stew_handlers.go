@@ -88,6 +88,7 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 				return
 			case newpkt := <-read_ch:
 				if newpkt.category == m_close {
+					kilog.Debug("Closed an encapsulated socket")
 					socket.Close()
 					return
 				}
