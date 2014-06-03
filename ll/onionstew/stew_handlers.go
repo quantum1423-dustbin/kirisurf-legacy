@@ -174,6 +174,9 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 			case <-ctx.killswitch:
 				return
 			case ctx.write_ch <- msg:
+			case <-local_close:
+				kilog.Debug("Socket closed.")
+				return
 			}
 		}
 	}
