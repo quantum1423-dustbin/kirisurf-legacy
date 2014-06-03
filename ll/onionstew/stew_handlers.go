@@ -63,12 +63,21 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 	}()
 
 	close_message := stew_message{m_close, connid, []byte("")}
+
+	this_close := func() {
+		select {
+		case <-local_close:
+		default:
+			close(local_close)
+		}
+	}
+
 	defer func() {
 		select {
 		case <-ctx.killswitch:
 		case ctx.write_ch <- close_message:
 		}
-		close(local_close)
+		this_close()
 		ctx.conntable[connid] = nil
 	}()
 
@@ -95,7 +104,7 @@ func tunnel_connection(ctx *stew_ctx, connid int, socket io.ReadWriteCloser) {
 					kilog.Debug("Closing an encapsulated socket...")
 					socket.Close()
 					kilog.Debug("Close() returned")
-					close(local_close)
+					this_close()
 					return
 				}
 				if newpkt.category == m_data {
