@@ -3,7 +3,6 @@ package intercom
 import (
 	"io"
 	"sync"
-	"time"
 )
 
 type BufferedPipe struct {
@@ -25,7 +24,8 @@ func NewBufferedPipe() *BufferedPipe {
 
 func (pipe *BufferedPipe) Close() error {
 	pipe.xaxa.Do(func() {
-		time.Sleep(time.Second / 20)
+		pipe.write_lk.Lock()
+		defer pipe.write_lk.Unlock()
 		close(pipe.fail_ch)
 	})
 	return nil
