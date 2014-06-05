@@ -1,6 +1,9 @@
 package intercom
 
-import "io"
+import (
+	"errors"
+	"io"
+)
 
 type virtsock struct {
 	reader *BufferedPipe
@@ -37,7 +40,10 @@ type VirtualServer struct {
 }
 
 func (vs *VirtualServer) Accept() (io.ReadWriteCloser, error) {
-	toret := <-vs.vs_ch
+	toret, ok := <-vs.vs_ch
+	if !ok {
+		return nil, errors.New("Channel closed")
+	}
 	return toret, nil
 }
 
