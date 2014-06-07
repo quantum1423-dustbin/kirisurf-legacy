@@ -10,6 +10,7 @@ import (
 
 	"github.com/codahale/chacha20"
 	"github.com/dchest/blake256"
+	"github.com/dchest/blake2s"
 )
 
 func BenchmarkChacha20(b *testing.B) {
@@ -23,7 +24,7 @@ func BenchmarkChacha20(b *testing.B) {
 
 func BenchmarkChugger(b *testing.B) {
 	val := make([]byte, 1024)
-	var key = make([]byte, 56)
+	var key = make([]byte, 32)
 	gaga := make_chugger(key)
 	for i := 0; i < b.N; i++ {
 		gaga.Seal(val)
@@ -58,6 +59,15 @@ func BenchmarkBLAKE256(b *testing.B) {
 	val := make([]byte, 1024)
 	for i := 0; i < b.N; i++ {
 		xaxa := blake256.New()
+		xaxa.Write(val)
+		xaxa.Sum(nil)
+	}
+}
+
+func BenchmarkBlake2s(b *testing.B) {
+	val := make([]byte, 1024)
+	for i := 0; i < b.N; i++ {
+		xaxa := blake2s.NewMAC(32, make([]byte, 32))
 		xaxa.Write(val)
 		xaxa.Sum(nil)
 	}
