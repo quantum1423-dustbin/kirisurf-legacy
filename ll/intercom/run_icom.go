@@ -9,7 +9,7 @@ import (
 
 func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	defer KILL()
-	socket_table := make(map[int]chan icom_msg)
+	socket_table := make([]chan icom_msg, 65536)
 
 	// Write packets
 	go func() {
@@ -43,7 +43,18 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 				if err != nil {
 					kilog.Debug("** icom_ctx dead @ client accept **")
 				}
-				//
+				// Find a connid
+				connid := 0
+				for i := 0; i < 65536; i++ {
+					if socket_table[i] == nil {
+						connid = i
+						continue
+					}
+				}
+				ctx.write_ch <- icom_msg{icom_open, connid, make([]byte, 0)}
+				xaxa := make(chan icom_msg, 256)
+				socket_table[connid] = xaxa
+				go icom_tunnel(ctx, KILL, incoming, connid, xaxa)
 			}
 		}()
 	}
@@ -73,10 +84,11 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 		// Now work with the packet
 		if justread.flag == icom_open && is_server {
 			// Open a connection! The caller of accept will unblock this call.
+			conn := VSConnect(ctx.our_srv)
 			xaxa := make(chan icom_msg, 256)
 			socket_table[justread.connid] = xaxa
 			// Tunnel the connection
-			go icom_tunnel(ctx, xaxa, justread.connid)
+			go icom_tunnel(ctx, KILL, conn, justread.connid, xaxa)
 		} else if justread.flag == icom_data ||
 			justread.flag == icom_more {
 			if socket_table[justread.connid] == nil {
@@ -95,7 +107,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 				return
 			}
 			ch := socket_table[justread.connid]
-			delete(socket_table, justread.connid)
+			socket_table[justread.connid] = nil
 			select {
 			case ch <- justread:
 			case <-ctx.killswitch:
