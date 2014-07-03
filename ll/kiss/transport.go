@@ -64,9 +64,9 @@ func TransportHandshake(keypair DHKeys, wire io.ReadWriteCloser,
 	write_key := KeyedHash(write_secret, []byte("KiSS-1.0"))
 	read_key := KeyedHash(read_secret, []byte("KiSS-1.0"))
 
-	readk := make([]byte, 32)
+	readk := make([]byte, 56)
 	copy(readk[:], read_key)
-	writek := make([]byte, 32)
+	writek := make([]byte, 56)
 	copy(writek[:], write_key)
 	<-done
 	return MessToStream(&kiss_mess_ctx{make_chugger(readk),

@@ -61,11 +61,7 @@ func sc_server_handler(_wire net.Conn) (err error) {
 			}
 		}
 		kilog.Debug("Continuing to %s", qqq.Address)
-		rem, err := net.Dial("tcp", qqq.Address)
-		if err != nil {
-			return err
-		}
-		remm, err := kiss.Obfs3fHandshake(rem, false)
+		remm, err := dialer.Dial(old2new(qqq.Address))
 		if err != nil {
 			return err
 		}
@@ -124,7 +120,7 @@ func (thing SCServer) Kill() {
 
 func RegisterNGSCServer(addr string) {
 	port, _ := strconv.Atoi(strings.Split(addr, ":")[1])
-	naddr = fmt.Sprintf("kirisurf@%s:%d", strings.Split(addr, ":")[0], port+1)
+	naddr := fmt.Sprintf("kirisurf@%s:%d", strings.Split(addr, ":")[0], port+1)
 	listener := intercom.MakeIntercomServer(naddr)
 	go func() {
 		for {
@@ -132,7 +128,14 @@ func RegisterNGSCServer(addr string) {
 			go func() {
 				defer nooclient.Close()
 				remote, err := net.Dial("tcp", addr)
-
+				if err != nil {
+					return
+				}
+				go func() {
+					defer remote.Close()
+					io.Copy(nooclient, remote)
+				}()
+				io.Copy(remote, nooclient)
 			}()
 		}
 	}()

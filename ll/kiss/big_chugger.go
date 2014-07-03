@@ -7,11 +7,11 @@ import (
 	"crypto/subtle"
 	"encoding/binary"
 
-	"github.com/codahale/chacha20"
+	"code.google.com/p/go.crypto/blowfish"
 )
 
 // This file implements the Grand Central Chugger, which handles stream authentication
-// Stream cipher ChaCha20 is used.
+// Stream cipher is used.
 
 type chugger struct {
 	streamer  cipher.Stream
@@ -47,7 +47,6 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 
 	pt := make([]byte, len(ct))
 	ctx.streamer.XORKeyStream(pt, ct)
-
 	xaxa := hmac.New(sha1.New, ctx.key)
 	xaxa.Write(pt[20:])
 	xaxa.Write(seq)
@@ -61,9 +60,7 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 }
 
 func make_chugger(key []byte) *chugger {
-	state, err := chacha20.NewCipher(key, make([]byte, 8))
-	if err != nil {
-		panic(err.Error())
-	}
-	return &chugger{state, key, 0, 0}
+	state, _ := blowfish.NewCipher(key)
+	streamer := cipher.NewCTR(state, make([]byte, state.BlockSize()))
+	return &chugger{streamer, key, 0, 0}
 }
