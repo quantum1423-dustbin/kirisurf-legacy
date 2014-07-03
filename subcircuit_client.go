@@ -35,7 +35,6 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 	// circuit-building loop
 	gwire, err := dialer.Dial(old2new(slc[0].Address))
 	if err != nil {
-		gwire.Close()
 		return nil, err
 	}
 	wire, err := kiss.TransportHandshake(kiss.GenerateDHKeys(),

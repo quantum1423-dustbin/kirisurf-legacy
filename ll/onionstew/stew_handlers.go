@@ -25,6 +25,7 @@ func (ctx *stew_ctx) attacht_client(client io.ReadWriteCloser, tgt string) {
 	select {
 	case ctx.write_ch <- stew_message{m_open, connid, []byte(tgt)}:
 	case <-ctx.killswitch:
+		kilog.Debug("Returning from attacht_client due to killswitch")
 		return
 	}
 

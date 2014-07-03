@@ -19,8 +19,10 @@ var viableNodes [][]dirclient.KNode
 func enfreshen_scb() {
 	// We shouldn't enfreshen unless the existing ctx is dead
 	if theBigContext != nil {
+		kilog.Debug("Waiting for dead chan...")
 		<-theBigContext.DeadChan
 	}
+	time.Sleep(time.Second * 2)
 	// Refresh the directory & viable nodes
 	dirclient.RefreshDirectory()
 	viableNodes = dirclient.FindPathGroup(MasterConfig.Network.MinCircuitLen)

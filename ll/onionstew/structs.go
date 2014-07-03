@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"io"
 	"sync"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 const (
@@ -137,6 +139,7 @@ func make_stew_ctx() *stew_ctx {
 	// Kill when underlying dies
 	go func() {
 		<-toret.llctx.killswitch
+		kilog.Debug("llctx dead")
 		toret.destroy()
 	}()
 	go func() {

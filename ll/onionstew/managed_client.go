@@ -34,7 +34,13 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 	toret.underlying = make_stew_ctx()
 	toret.client_chan = make(chan io.ReadWriteCloser)
 	toret.client_addr_chan = make(chan string)
-	toret.DeadChan = toret.underlying.killswitch
+	toret.DeadChan = make(chan bool)
+
+	go func() {
+		<-toret.underlying.killswitch
+		close(toret.DeadChan)
+	}()
+
 	go toret.underlying.run_stew(false)
 
 	// First subcircuit
@@ -93,7 +99,6 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 	go func() {
 		for {
 			client, ok := <-toret.client_chan
-			defer client.Close()
 			if !ok {
 				toret.underlying.destroy()
 				return
