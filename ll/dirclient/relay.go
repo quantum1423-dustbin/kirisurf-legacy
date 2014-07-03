@@ -28,7 +28,8 @@ func RunRelay(port int, keyhash string, isexit bool) {
 		r, e := http.Get(url)
 		if e != nil {
 			r.Body.Close()
-			panic("WTF")
+			time.Sleep(time.Second * 10)
+			continue
 		}
 		time.Sleep(time.Second * 20)
 	}

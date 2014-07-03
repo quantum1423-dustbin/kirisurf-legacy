@@ -78,7 +78,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 					}
 				}
 				ctx.write_ch <- icom_msg{icom_open, connid, make([]byte, 0)}
-				xaxa := make(chan icom_msg, 256)
+				xaxa := make(chan icom_msg, 2048)
 				socket_table[connid] = xaxa
 				fmt.Println("Client side tunneling connid", connid)
 				go icom_tunnel(ctx, KILL, incoming, connid, xaxa)
@@ -102,7 +102,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 		if justread.flag == icom_open && is_server {
 			// Open a connection! The caller of accept will unblock this call.
 			conn := VSConnect(ctx.our_srv)
-			xaxa := make(chan icom_msg, 256)
+			xaxa := make(chan icom_msg, 2048)
 			socket_table[justread.connid] = xaxa
 			// Tunnel the connection
 			fmt.Println("Server side tunneling connid", justread.connid)
