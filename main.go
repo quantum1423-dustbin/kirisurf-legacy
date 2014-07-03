@@ -58,6 +58,7 @@ func main() {
 	dirclient.RefreshDirectory()
 	if MasterConfig.General.Role == "server" {
 		NewSCServer(MasterConfig.General.ORAddr)
+		RegisterNGSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
 		go dirclient.RunRelay(prt, MasterKeyHash,
