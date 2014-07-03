@@ -14,19 +14,8 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-func sc_server_handler(_wire net.Conn) (err error) {
-	defer func() {
-		if err != nil {
-			kilog.Debug("sc_server_handler returning err=%s", err.Error())
-		}
-	}()
-	defer _wire.Close()
-	wire, err := kiss.Obfs3fHandshake(_wire, true)
-	if err != nil {
-		//kilog.Debug(err.Error())
-		return nil
-	}
-	wire, err = kiss.TransportHandshake(MasterKey, wire,
+func sc_server_real_handler(_wire io.ReadWriteCloser) (err error) {
+	wire, err := kiss.TransportHandshake(MasterKey, _wire,
 		func([]byte) bool { return true })
 	if err != nil {
 		kilog.Debug("failed the transport handshake")
@@ -43,6 +32,7 @@ func sc_server_handler(_wire net.Conn) (err error) {
 		if !MasterConfig.General.IsExit {
 			return nil
 		}
+		kilog.Debug("terminating")
 		e2e_server_handler(wire)
 	} else {
 		xaxa := make([]byte, thing[0])
@@ -73,6 +63,21 @@ func sc_server_handler(_wire net.Conn) (err error) {
 		remm.Close()
 	}
 	return io.EOF
+}
+
+func sc_server_handler(_wire net.Conn) (err error) {
+	defer func() {
+		if err != nil {
+			kilog.Debug("sc_server_handler returning err=%s", err.Error())
+		}
+	}()
+	defer _wire.Close()
+	wire, err := kiss.Obfs3fHandshake(_wire, true)
+	if err != nil {
+		//kilog.Debug(err.Error())
+		return nil
+	}
+	return sc_server_real_handler(wire)
 }
 
 type SCServer struct {
@@ -126,16 +131,7 @@ func RegisterNGSCServer(addr string) {
 		for {
 			nooclient := listener.Accept()
 			go func() {
-				defer nooclient.Close()
-				remote, err := net.Dial("tcp", addr)
-				if err != nil {
-					return
-				}
-				go func() {
-					defer remote.Close()
-					io.Copy(nooclient, remote)
-				}()
-				io.Copy(remote, nooclient)
+				sc_server_real_handler(nooclient)
 			}()
 		}
 	}()
