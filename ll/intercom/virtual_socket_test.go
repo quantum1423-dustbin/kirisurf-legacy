@@ -1,24 +1,26 @@
 package intercom
 
 import (
-	"fmt"
 	"io"
-	"os"
 	"testing"
 )
 
-func TestVS(t *testing.T) {
-	server := VSListen()
+func BenchmarkBP(b *testing.B) {
+	xaxa := NewBufferedPipe()
 	go func() {
-		xaxa, _ := server.Accept()
 		defer xaxa.Close()
-		for i := 0; i < 100; i++ {
-			xaxa.Write([]byte(fmt.Sprintf("Hello world! %d\n", i)))
+		lel := make([]byte, 1024)
+		for {
+			_, err := xaxa.Write(lel)
+			if err != nil {
+				return
+			}
 		}
 	}()
-	conn := VSConnect(server)
-	_, err := io.Copy(os.Stdout, conn)
-	if err != nil {
-		panic(err.Error())
+	defer xaxa.Close()
+	b.ResetTimer()
+	lel := make([]byte, 1024)
+	for i := 0; i < b.N; i++ {
+		io.ReadFull(xaxa, lel)
 	}
 }

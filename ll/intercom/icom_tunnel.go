@@ -32,9 +32,19 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 		conn.Close()
 	}()
 
+	// Semaphore for send flow control
+	fctl := make(chan bool, 256)
+	for i := 0; i < 256; i++ {
+		select {
+		case fctl <- true:
+		default:
+		}
+	}
+
 	// De-encapsulate
 	go func() {
 		defer local_kill()
+		i := byte(0)
 		for {
 			select {
 			case <-local_close:
@@ -43,10 +53,27 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 				if pkt.flag == icom_close {
 					return
 				} else if pkt.flag == icom_data {
+					i++
 					// Is of data. Into puttings.
 					_, err := conn.Write(pkt.body)
 					if err != nil {
 						return
+					}
+					if i == 0 {
+						go func() {
+							select {
+							case ctx.write_ch <- icom_msg{icom_more, connid,
+								make([]byte, 0)}:
+							case <-ctx.killswitch:
+							}
+						}()
+					}
+				} else if pkt.flag == icom_more {
+					for i := 0; i < 256; i++ {
+						select {
+						case fctl <- true:
+						default:
+						}
 					}
 				}
 			}
@@ -54,9 +81,9 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 	}()
 
 	// Encapsulate
-	go func() {
+	func() {
 		defer local_kill()
-		buff := make([]byte, 1024)
+		buff := make([]byte, 1400)
 		for {
 			select {
 			case <-local_close:
@@ -73,6 +100,11 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
+				select {
+				case <-fctl:
+				case <-local_close:
+					return
+				}
 				select {
 				case ctx.write_ch <- icom_msg{icom_data, connid, xaxa}:
 				case <-local_close:

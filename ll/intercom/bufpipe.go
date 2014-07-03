@@ -1,78 +1,58 @@
 package intercom
 
 import (
+	"fmt"
 	"io"
+	"net"
 	"sync"
 )
 
+var _bplock sync.Mutex
+var _bplist net.Listener
+
 type BufferedPipe struct {
-	fail_ch  chan bool
-	main_ch  chan []byte
-	buffer   []byte
-	read_lk  sync.Mutex
-	write_lk sync.Mutex
-	xaxa     sync.Once
+	reader io.ReadWriteCloser
+	writer io.ReadWriteCloser
+	wmutex sync.Mutex
+	rmutex sync.Mutex
 }
 
 func NewBufferedPipe() *BufferedPipe {
+	_bplock.Lock()
+	defer _bplock.Unlock()
+	writer, err := net.Dial("tcp", _bplist.Addr().String())
+	if err != nil {
+		panic("wtf")
+	}
+	reader, err := _bplist.Accept()
+	if err != nil {
+		panic("wtf")
+	}
 	toret := new(BufferedPipe)
-	toret.buffer = nil
-	toret.fail_ch = make(chan bool)
-	toret.main_ch = make(chan []byte, 4)
+	toret.reader = reader
+	toret.writer = writer
 	return toret
 }
 
-func (pipe *BufferedPipe) Close() error {
-	pipe.xaxa.Do(func() {
-		pipe.write_lk.Lock()
-		defer pipe.write_lk.Unlock()
-		close(pipe.fail_ch)
-	})
-	return nil
+func (pipe *BufferedPipe) Read(p []byte) (int, error) {
+	//pipe.rmutex.Lock()
+	//defer pipe.rmutex.Unlock()
+	return pipe.reader.Read(p)
 }
 
 func (pipe *BufferedPipe) Write(p []byte) (int, error) {
-	pipe.write_lk.Lock()
-	defer pipe.write_lk.Unlock()
-
-	select {
-	case pipe.main_ch <- p:
-		return len(p), nil
-	case <-pipe.fail_ch:
-		return 0, io.ErrClosedPipe
-	}
+	//pipe.wmutex.Lock()
+	//defer pipe.wmutex.Unlock()
+	return pipe.writer.Write(p)
 }
 
-func (pipe *BufferedPipe) Read(p []byte) (int, error) {
-	pipe.read_lk.Lock()
-	defer pipe.read_lk.Unlock()
+func (pipe *BufferedPipe) Close() error {
+	//pipe.wmutex.Lock()
+	//defer pipe.wmutex.Unlock()
+	return pipe.writer.Close()
+}
 
-	// If something in buffer...
-retry:
-	if pipe.buffer != nil {
-		if len(pipe.buffer) > len(p) {
-			copy(p, pipe.buffer)
-			pipe.buffer = pipe.buffer[len(p):]
-			return len(p), nil
-		}
-		copy(p, pipe.buffer)
-		return len(pipe.buffer), nil
-	}
-
-	var arrival []byte
-	select {
-	case arrival = <-pipe.main_ch:
-	case <-pipe.fail_ch:
-		return 0, io.EOF
-	}
-	if len(arrival) > len(p) {
-		if pipe.buffer == nil {
-			pipe.buffer = arrival
-			goto retry
-		} else {
-			panic("Kurwa! This shouldn't into happen!")
-		}
-	}
-	copy(p, arrival)
-	return len(arrival), nil
+func init() {
+	_bplist, _ = net.Listen("tcp", "127.0.0.1:0")
+	fmt.Println("init done")
 }

@@ -2,10 +2,14 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"kirisurf/ll/dirclient"
+	"kirisurf/ll/intercom"
 	"kirisurf/ll/kiss"
 	"net"
+	"strconv"
+	"strings"
 
 	"github.com/KirisurfProject/kilog"
 )
@@ -82,6 +86,7 @@ type SCServer struct {
 
 func NewSCServer(addr string) SCServer {
 	listener, err := net.Listen("tcp", addr)
+
 	if err != nil {
 		panic(err.Error())
 	}
@@ -115,4 +120,20 @@ func NewSCServer(addr string) SCServer {
 
 func (thing SCServer) Kill() {
 	thing.killer <- true
+}
+
+func RegisterNGSCServer(addr string) {
+	port, _ := strconv.Atoi(strings.Split(addr, ":")[1])
+	naddr = fmt.Sprintf("kirisurf@%s:%d", strings.Split(addr, ":")[0], port+1)
+	listener := intercom.MakeIntercomServer(naddr)
+	go func() {
+		for {
+			nooclient := listener.Accept()
+			go func() {
+				defer nooclient.Close()
+				remote, err := net.Dial("tcp", addr)
+
+			}()
+		}
+	}()
 }

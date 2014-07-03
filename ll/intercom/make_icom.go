@@ -1,7 +1,10 @@
 package intercom
 
 import (
+	"encoding/binary"
+	"fmt"
 	"io"
+	"runtime"
 	"sync"
 )
 
@@ -19,6 +22,43 @@ type icom_msg struct {
 	flag   int
 	connid int
 	body   []byte
+}
+
+func (xaxa *icom_msg) WriteTo(writer io.Writer) error {
+	defer runtime.Gosched()
+	scratch := make([]byte, len(xaxa.body)+5)
+	scratch[0] = byte(xaxa.flag)
+	binary.LittleEndian.PutUint16(scratch[1:3], uint16(xaxa.connid))
+	binary.LittleEndian.PutUint16(scratch[3:5], uint16(len(xaxa.body)))
+	copy(scratch[5:], xaxa.body)
+	_, err := writer.Write(scratch)
+	return err
+}
+
+func (xaxa *icom_msg) ReadFrom(reader io.Reader) error {
+	defer runtime.Gosched()
+	mdat := make([]byte, 3)
+	_, err := io.ReadFull(reader, mdat)
+	if err != nil {
+		return err
+	}
+	xaxa.flag = int(mdat[0])
+	xaxa.connid = int(binary.LittleEndian.Uint16(mdat[1:3]))
+	_, err = io.ReadFull(reader, mdat[0:2])
+	if err != nil {
+		return err
+	}
+	length := binary.LittleEndian.Uint16(mdat[0:2])
+	if err != nil {
+		return err
+	}
+	body := make([]byte, int(length))
+	_, err = io.ReadFull(reader, body)
+	if err != nil {
+		return err
+	}
+	xaxa.body = body
+	return nil
 }
 
 const (
@@ -42,6 +82,7 @@ func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool) *icom_ctx {
 	ctx.killswitch = killswitch
 	var _ks_exec sync.Once
 	KILL := func() {
+		fmt.Println("globkilled!")
 		_ks_exec.Do(func() {
 			ctx.underlying.Close()
 			ctx.is_dead = true

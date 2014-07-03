@@ -19,8 +19,8 @@ func (xaxa *virtsock) Write(p []byte) (int, error) {
 }
 
 func (xaxa *virtsock) Close() error {
-	xaxa.reader.Close()
 	xaxa.writer.Close()
+	xaxa.reader.Close()
 	return nil
 }
 

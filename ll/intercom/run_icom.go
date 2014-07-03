@@ -1,8 +1,9 @@
 package intercom
 
 import (
-	"encoding/binary"
-	"io"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/KirisurfProject/kilog"
 )
@@ -10,6 +11,8 @@ import (
 func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	defer KILL()
 	socket_table := make([]chan icom_msg, 65536)
+
+	prob_dist := MakeProbDistro()
 
 	// Write packets
 	go func() {
@@ -19,15 +22,37 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			case <-ctx.killswitch:
 				return
 			case xaxa := <-ctx.write_ch:
-				towrite := make([]byte, 5+len(xaxa.body))
-				copy(towrite[5:], xaxa.body)
-				towrite[0] = byte(xaxa.flag)
-				binary.BigEndian.PutUint16(towrite[1:3], uint16(xaxa.connid))
-				binary.BigEndian.PutUint16(towrite[3:5], uint16(len(xaxa.body)))
-				_, err := ctx.underlying.Write(towrite)
+				desired_size := prob_dist.Draw()
+				prob_dist.Juggle()
+				err := xaxa.WriteTo(ctx.underlying)
 				if err != nil {
 					kilog.Debug("** icom_ctx dead @ write ** due to %s", err.Error())
 					return
+				}
+				if desired_size > len(xaxa.body) {
+					excess := desired_size - len(xaxa.body)
+					padd := icom_msg{icom_ignore, 0, make([]byte, excess)}
+					err := padd.WriteTo(ctx.underlying)
+					if err != nil {
+						kilog.Debug("** icom_ctx dead @ write ** due to %s", err.Error())
+						return
+					}
+				}
+			}
+		}
+	}()
+
+	// Keepalive pakkets
+	go func() {
+		for {
+			select {
+			case <-ctx.killswitch:
+				return
+			case <-time.After(time.Second * time.Duration(rand.Int()%10)):
+				select {
+				case <-ctx.killswitch:
+					return
+				case ctx.write_ch <- icom_msg{icom_ignore, 0, make([]byte, 0)}:
 				}
 			}
 		}
@@ -42,52 +67,45 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 				incoming, err := ctx.our_srv.Accept()
 				if err != nil {
 					kilog.Debug("** icom_ctx dead @ client accept **")
+					return
 				}
 				// Find a connid
 				connid := 0
 				for i := 0; i < 65536; i++ {
 					if socket_table[i] == nil {
 						connid = i
-						continue
+						break
 					}
 				}
 				ctx.write_ch <- icom_msg{icom_open, connid, make([]byte, 0)}
 				xaxa := make(chan icom_msg, 256)
 				socket_table[connid] = xaxa
+				fmt.Println("Client side tunneling connid", connid)
 				go icom_tunnel(ctx, KILL, incoming, connid, xaxa)
 			}
 		}()
 	}
 
 	// Reading link
-	metabuf := make([]byte, 5)
 	for {
-		// Read metadata of next pkt
-		_, err := io.ReadFull(ctx.underlying, metabuf)
-		if err != nil {
-			kilog.Debug("** icom_ctx dead @ metadata ** due to %s", err.Error())
-			return
-		}
-		// Parse md
 		var justread icom_msg
-		justread.flag = int(metabuf[0])
-		justread.connid = int(metabuf[1])*256 + int(metabuf[2])
-		length := int(metabuf[3])*256 + int(metabuf[4])
-		justread.body = make([]byte, length)
-		// Read the body
-		_, err = io.ReadFull(ctx.underlying, justread.body)
+		err := justread.ReadFrom(ctx.underlying)
 		if err != nil {
 			kilog.Debug("** icom_ctx dead @ body ** due to %s", err.Error())
 			return
 		}
 
 		// Now work with the packet
+		if justread.flag == icom_ignore {
+			continue
+		}
 		if justread.flag == icom_open && is_server {
 			// Open a connection! The caller of accept will unblock this call.
 			conn := VSConnect(ctx.our_srv)
 			xaxa := make(chan icom_msg, 256)
 			socket_table[justread.connid] = xaxa
 			// Tunnel the connection
+			fmt.Println("Server side tunneling connid", justread.connid)
 			go icom_tunnel(ctx, KILL, conn, justread.connid, xaxa)
 		} else if justread.flag == icom_data ||
 			justread.flag == icom_more {
@@ -100,6 +118,8 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			case socket_table[justread.connid] <- justread:
 			case <-ctx.killswitch:
 				return
+			default:
+				fmt.Println("Blocked on forward!")
 			}
 		} else if justread.flag == icom_close {
 			if socket_table[justread.connid] == nil {

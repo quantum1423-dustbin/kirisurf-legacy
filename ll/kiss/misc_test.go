@@ -66,8 +66,8 @@ func BenchmarkBLAKE256(b *testing.B) {
 }
 
 func BenchmarkBlake2s(b *testing.B) {
-	val := make([]byte, 1024)
-	for i := 0; i < b.N; i++ {
+	val := make([]byte, 4096)
+	for i := 0; i < b.N/4; i++ {
 		xaxa := blake2s.NewMAC(32, make([]byte, 32))
 		xaxa.Write(val)
 		xaxa.Sum(nil)

@@ -2,11 +2,12 @@ package kiss
 
 import (
 	"crypto/cipher"
+	"crypto/hmac"
+	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/binary"
 
 	"github.com/codahale/chacha20"
-	"github.com/dchest/blake2s"
 )
 
 // This file implements the Grand Central Chugger, which handles stream authentication
@@ -26,7 +27,7 @@ func (ctx *chugger) Seal(pt []byte) []byte {
 
 	toret := make([]byte, 20+len(pt))
 
-	xaxa := blake2s.NewMAC(20, ctx.key)
+	xaxa := hmac.New(sha1.New, ctx.key)
 	xaxa.Write(pt)
 	xaxa.Write(seq)
 	tag := xaxa.Sum(nil)
@@ -46,7 +47,8 @@ func (ctx *chugger) Open(ct []byte) ([]byte, error) {
 
 	pt := make([]byte, len(ct))
 	ctx.streamer.XORKeyStream(pt, ct)
-	xaxa := blake2s.NewMAC(20, ctx.key)
+
+	xaxa := hmac.New(sha1.New, ctx.key)
 	xaxa.Write(pt[20:])
 	xaxa.Write(seq)
 	actual_sum := xaxa.Sum(nil)
