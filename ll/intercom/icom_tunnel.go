@@ -33,8 +33,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 	}()
 
 	// Semaphore for send flow control
-	fctl := make(chan bool, 256)
-	for i := 0; i < 256; i++ {
+	fctl := make(chan bool, 2048)
+	for i := 0; i < 2048; i++ {
 		select {
 		case fctl <- true:
 		default:
@@ -69,7 +69,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 						}()
 					}
 				} else if pkt.flag == icom_more {
-					for i := 0; i < 256; i++ {
+					for i := 0; i < 2048; i++ {
 						select {
 						case fctl <- true:
 						default:

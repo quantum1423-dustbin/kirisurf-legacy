@@ -125,15 +125,6 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 			kilog.Debug("AttachSC receiving KILLSWITCH, destroying wire")
 			wire.Close()
 			return
-		case <-time.After(time.Second * time.Duration(rand.Int()%30)):
-			xaxa := sc_message{0xFFFFFFFFFFFFFFFE, []byte("")}
-			err := write_sc_message(xaxa, wire)
-			if err != nil {
-				kilog.Warning("AttachSC encountered unexpected error %s while WRITING KA, DESTROYING STEW",
-					err.Error())
-				ctx.destroy()
-				// Will die on next iteration
-			}
 		}
 	}
 }
