@@ -1,0 +1,9 @@
+[general]
+SocksAddr = 127.0.0.1:9050
+ORAddr = 0.0.0.0:2380
+IsExit = false
+Role = server
+
+[network]
+MinCircuitLen = 5
+
