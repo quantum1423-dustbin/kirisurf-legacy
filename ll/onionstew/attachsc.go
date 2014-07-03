@@ -8,8 +8,6 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-import cryptorand "crypto/rand"
-
 var DownloadIncrement = func(int) {
 
 }
@@ -93,27 +91,6 @@ func (ctx *sc_ctx) AttachSC(wire io.ReadWriteCloser, serverside bool) {
 				// Will die on next iteration
 			}
 			UploadIncrement(len(newthing.payload))
-			//TODO: Make this not tie up the connection
-			xaxa := make([]byte, 1)
-			cryptorand.Read(xaxa)
-			if xaxa[0] < 200 {
-				tosend := make([]byte, 0)
-				for xaxa[0] < 200 {
-					tosend = append(tosend, make([]byte, xaxa[0])...)
-					cryptorand.Read(xaxa)
-				}
-				qaqa := sc_message{0xFFFFFFFFFFFFFFFE, tosend}
-				UploadOverheadIncrement(len(tosend))
-				if len(tosend) != 0 {
-					err := write_sc_message(qaqa, wire)
-					if err != nil {
-						kilog.Warning(
-							"AttachSC encountered unexpected error %s while WRITING KA, DESTROYING STEW",
-							err.Error())
-						ctx.destroy()
-					}
-				}
-			}
 		case <-local_stop:
 			return
 		case <-local_close:
