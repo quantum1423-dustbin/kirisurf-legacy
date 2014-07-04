@@ -77,7 +77,7 @@ func run_client_loop() {
 				nconn.Close()
 				return
 			}
-			kilog.Debug("remaddr=%s", remaddr)
+			kilog.Debug("Connecting to %s", remaddr)
 			theBigContext.AddClient(nconn, remaddr)
 		}()
 	}

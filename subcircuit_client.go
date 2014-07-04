@@ -59,7 +59,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 			gwire.Close()
 			return nil, err
 		}
-		kilog.Debug("Connected to %v", ele)
+		kilog.Debug("Connected to node %v...", string([]byte(ele.PublicKey)[:10]))
 	}
 	_, err = wire.Write([]byte("\000"))
 	if err != nil {

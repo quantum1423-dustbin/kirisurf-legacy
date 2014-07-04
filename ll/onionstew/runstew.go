@@ -1,10 +1,6 @@
 package onionstew
 
-import (
-	"fmt"
-
-	"github.com/KirisurfProject/kilog"
-)
+import "github.com/KirisurfProject/kilog"
 
 func (ctx *stew_ctx) run_stew(is_server bool) {
 	defer func() {
@@ -32,16 +28,13 @@ func (ctx *stew_ctx) run_stew(is_server bool) {
 				ch := ctx.conntable[pkt.connid]
 				ctx.lock.RUnlock()
 				if ch == nil {
-					kilog.Debug("stew_message with illegal connid received, killing connid")
+					//kilog.Debug("stew_message with illegal connid received, killing connid")
 					continue
 				}
 				ch <- pkt
 			} else if pkt.category == m_dns {
 				// not implemented
 			} else {
-				// illegal packet! Log & silent-drop as a precaution against attakk
-				kilog.Warning("Illegal stew_message received: %s, %x (is_server=%b)",
-					fmt.Sprint(pkt), pkt.bytes(), is_server)
 			}
 		}
 	}

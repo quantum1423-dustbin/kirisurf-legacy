@@ -40,7 +40,7 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		minlen = len(directory)
 	}
 
-	kilog.Debug("minlen = %d", minlen)
+	kilog.Debug("Building a circuit with minimum length %d", minlen)
 
 	rand256 := func() int {
 		buf := make([]byte, 1)
@@ -73,7 +73,6 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
 		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion >= 300 {
-			kilog.Debug("%v", toret)
 			return toret
 		}
 		// Otherwise chug along

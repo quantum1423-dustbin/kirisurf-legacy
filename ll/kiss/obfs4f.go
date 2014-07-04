@@ -3,7 +3,6 @@ package kiss
 import (
 	"crypto/rand"
 	"crypto/subtle"
-	"fmt"
 	"io"
 	"net"
 )
@@ -13,7 +12,6 @@ import (
 
 func Obfs4fHandshake(wire net.Conn, is_server bool, key string) (io.ReadWriteCloser, error) {
 	secret := KeyedHash([]byte(key), []byte("Generator for obfs4f secret"))
-	fmt.Printf(" *** secret: %X ***\n", secret)
 	if is_server {
 		// Must receive a valid proof!
 		randdat := make([]byte, 256)
@@ -30,7 +28,6 @@ func Obfs4fHandshake(wire net.Conn, is_server bool, key string) (io.ReadWriteClo
 		if subtle.ConstantTimeCompare(actcheksum, cheksum) == 1 {
 			return Obfs3fHandshake(wire, is_server)
 		} else {
-			fmt.Printf(" *** purported: %x ***\n *** actual:    %x ***\n", cheksum, actcheksum)
 			return nil, ErrMacNoMatch
 		}
 	} else {
