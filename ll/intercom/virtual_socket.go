@@ -3,7 +3,6 @@ package intercom
 import (
 	"errors"
 	"io"
-	"time"
 )
 
 type virtsock struct {
@@ -20,11 +19,8 @@ func (xaxa *virtsock) Write(p []byte) (int, error) {
 }
 
 func (xaxa *virtsock) Close() error {
-	go func() {
-		time.Sleep(time.Second * 3)
-		xaxa.writer.Close()
-		xaxa.reader.Close()
-	}()
+	xaxa.writer.Close()
+	xaxa.reader.Close()
 	return nil
 }
 

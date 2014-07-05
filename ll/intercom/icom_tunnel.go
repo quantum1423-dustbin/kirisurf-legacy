@@ -3,6 +3,7 @@ package intercom
 import (
 	"io"
 	"sync"
+	"time"
 )
 
 func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int, reader chan icom_msg) {
@@ -95,7 +96,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 				n, err := conn.Read(buff)
 				if err != nil {
 					select {
-					case ctx.write_ch <- icom_msg{icom_close, connid, make([]byte, 0)}:
+					case <-time.After(time.Second):
+						ctx.write_ch <- icom_msg{icom_close, connid, make([]byte, 0)}
 					case <-local_close:
 						return
 					}
