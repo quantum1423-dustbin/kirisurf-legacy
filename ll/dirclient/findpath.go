@@ -73,11 +73,24 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
 		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion >= 300 {
-			return toret
+			// We want to almost always prune away paths that are ludicrously long,
+			// but we can use them if no other choice
+			if float64(endptr)/float64(minlen) < 3 || rand256() < 3 {
+				return toret
+			} else {
+				return FindPath(directory, minlen)
+			}
 		}
 		// Otherwise chug along
+	xaxa:
 		idx := rand256() % len(adj)
 		next := directory[adj[idx]]
+		// We cannot allow loops in the path, unless we have to
+		for _, ele := range toret {
+			if ele.PublicKey == next.PublicKey && rand256() < 250 {
+				goto xaxa
+			}
+		}
 		toret = append(toret, next)
 		endptr++
 	}
