@@ -75,7 +75,7 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion >= 300 {
 			// We want to almost always prune away paths that are ludicrously long,
 			// but we can use them if no other choice
-			if float64(endptr)/float64(minlen) < 3 || rand256() < 3 {
+			if float64(endptr)-float64(minlen) < 3 || rand256() < 3 {
 				return toret
 			} else {
 				return FindPath(directory, minlen)

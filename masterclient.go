@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/KirisurfProject/kilog"
@@ -16,13 +17,17 @@ import (
 var theBigContext *onionstew.ManagedClient
 var viableNodes [][]dirclient.KNode
 
+var tbclock sync.Mutex
+
 func enfreshen_scb() {
+	tbclock.Unlock()
 	// We shouldn't enfreshen unless the existing ctx is dead
 	if theBigContext != nil {
 		kilog.Debug("Waiting for dead chan...")
 		<-theBigContext.DeadChan
 	}
 	time.Sleep(time.Second * 2)
+	tbclock.Lock()
 	// Refresh the directory & viable nodes
 	dirclient.RefreshDirectory()
 	viableNodes = dirclient.FindPathGroup(MasterConfig.Network.MinCircuitLen)
@@ -78,7 +83,10 @@ func run_client_loop() {
 				return
 			}
 			kilog.Debug("Connecting to %s", remaddr)
-			theBigContext.AddClient(nconn, remaddr)
+			tbclock.Lock()
+			tbc := theBigContext
+			tbclock.Unlock()
+			tbc.AddClient(nconn, remaddr)
 		}()
 	}
 }
