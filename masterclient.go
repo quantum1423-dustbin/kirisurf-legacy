@@ -20,7 +20,6 @@ var viableNodes [][]dirclient.KNode
 var tbclock sync.Mutex
 
 func enfreshen_scb() {
-	tbclock.Unlock()
 	// We shouldn't enfreshen unless the existing ctx is dead
 	if theBigContext != nil {
 		kilog.Debug("Waiting for dead chan...")
@@ -55,6 +54,7 @@ func enfreshen_scb() {
 		return
 	}
 	theBigContext = tbc
+	tbclock.Unlock()
 }
 
 func run_client_loop() {

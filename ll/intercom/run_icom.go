@@ -11,6 +11,8 @@ import (
 func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	defer KILL()
 	socket_table := make([]chan icom_msg, 65536)
+	stable_lock := make(chan bool)
+	stable_lock <- true
 
 	prob_dist := MakeProbDistro()
 
@@ -70,6 +72,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 					return
 				}
 				// Find a connid
+				<-stable_lock
 				connid := 0
 				for i := 0; i < 65536; i++ {
 					if socket_table[i] == nil {
@@ -81,10 +84,13 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 				xaxa := make(chan icom_msg, 2048)
 				socket_table[connid] = xaxa
 				fmt.Println("Client side tunneling connid", connid)
+				stable_lock <- true
 				go func() {
 					icom_tunnel(ctx, KILL, incoming, connid, xaxa)
 					fmt.Println("Freeing connid %d", connid)
+					<-stable_lock
 					socket_table[connid] = nil
+					stable_lock <- true
 				}()
 			}
 		}()
@@ -107,31 +113,38 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			// Open a connection! The caller of accept will unblock this call.
 			conn := VSConnect(ctx.our_srv)
 			xaxa := make(chan icom_msg, 2048)
+			<-stable_lock
 			socket_table[justread.connid] = xaxa
+			stable_lock <- true
 			// Tunnel the connection
 			fmt.Println("Server side tunneling connid", justread.connid)
 			go icom_tunnel(ctx, KILL, conn, justread.connid, xaxa)
 		} else if justread.flag == icom_data ||
 			justread.flag == icom_more {
+			<-stable_lock
 			if socket_table[justread.connid] == nil {
 				kilog.Debug("Tried to send packet to nonexistent connid!")
-				return
+				continue
 			}
+			ch := socket_table[justread.connid]
+			stable_lock <- true
 			// Forward the data to the socket
 			select {
-			case socket_table[justread.connid] <- justread:
+			case ch <- justread:
 			case <-ctx.killswitch:
 				return
 			default:
 				fmt.Println("Blocked on forward!")
 			}
 		} else if justread.flag == icom_close {
+			<-stable_lock
 			if socket_table[justread.connid] == nil {
 				kilog.Debug("Tried to send packet to nonexistent connid!")
-				return
+				continue
 			}
 			ch := socket_table[justread.connid]
 			socket_table[justread.connid] = nil
+			stable_lock <- true
 			select {
 			case ch <- justread:
 			case <-ctx.killswitch:
