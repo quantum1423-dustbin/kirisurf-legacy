@@ -18,6 +18,7 @@ var MasterKey = kiss.GenerateDHKeys()
 var MasterKeyHash = hash_base32(MasterKey.Public)
 
 var confloc = flag.String("c", "", "config location")
+var singhop = flag.Bool("singhop", false, "single hop or not")
 
 var version = "NOT_A_RELEASE_VERSION"
 
@@ -31,6 +32,9 @@ func main() {
 		if err != nil {
 			kilog.Warning("Configuration file broken, using defaults")
 		}
+	}
+	if *singhop {
+		MasterConfig.Network.MinCircuitLen = 1
 	}
 	INFO("Kirisurf %s started! mkh=%s", version, MasterKeyHash)
 	go func() {

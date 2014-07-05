@@ -40,9 +40,12 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 		default:
 		}
 	}
-
+	xaxa := make(chan bool)
 	// De-encapsulate
 	go func() {
+		defer func() {
+			xaxa <- true
+		}()
 		defer local_kill()
 		i := byte(0)
 		for {
@@ -112,5 +115,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 				}
 			}
 		}
+	}()
+	defer func() {
+		<-xaxa
 	}()
 }

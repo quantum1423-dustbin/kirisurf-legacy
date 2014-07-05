@@ -81,7 +81,11 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 				xaxa := make(chan icom_msg, 2048)
 				socket_table[connid] = xaxa
 				fmt.Println("Client side tunneling connid", connid)
-				go icom_tunnel(ctx, KILL, incoming, connid, xaxa)
+				go func() {
+					icom_tunnel(ctx, KILL, incoming, connid, xaxa)
+					fmt.Println("Freeing connid %d", connid)
+					socket_table[connid] = nil
+				}()
 			}
 		}()
 	}
