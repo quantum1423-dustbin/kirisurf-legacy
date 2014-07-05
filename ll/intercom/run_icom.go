@@ -11,7 +11,7 @@ import (
 func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	defer KILL()
 	socket_table := make([]chan icom_msg, 65536)
-	stable_lock := make(chan bool)
+	stable_lock := make(chan bool, 1)
 	stable_lock <- true
 
 	prob_dist := MakeProbDistro()
