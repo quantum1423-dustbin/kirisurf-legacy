@@ -43,7 +43,8 @@ func RefreshDirectory() error {
 	io.Copy(buff, resp.Body)
 	err = json.Unmarshal(buff.Bytes(), &KDirectory)
 	if err != nil {
-		panic(err.Error())
+		time.Sleep(time.Second)
+		return RefreshDirectory()
 	}
 	return nil
 }
