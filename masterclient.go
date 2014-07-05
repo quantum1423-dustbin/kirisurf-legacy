@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/onionstew"
@@ -46,7 +47,9 @@ func enfreshen_scb() {
 		return sc
 	}
 
+	fmt.Println("Got to 1")
 	tbc, err := onionstew.MakeManagedClient(gen_subcircuit)
+	fmt.Println("Got to 2")
 	if err != nil {
 		kilog.Warning("error encountered in enfreshen_scb() %s, sleeping 1 sec & retry", err.Error())
 		time.Sleep(time.Second)
@@ -54,6 +57,7 @@ func enfreshen_scb() {
 		return
 	}
 	theBigContext = tbc
+	fmt.Println("Got to 3")
 	tbclock.Unlock()
 }
 

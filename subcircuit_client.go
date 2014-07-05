@@ -34,11 +34,13 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 
 	// circuit-building loop
 	gwire, err := dialer.Dial(old2new(slc[0].Address))
+	kilog.Debug("Got to a")
 	if err != nil {
 		return nil, err
 	}
 	wire, err := kiss.TransportHandshake(kiss.GenerateDHKeys(),
 		gwire, pubkey_checker(slc[0].PublicKey))
+	kilog.Debug("Got to b")
 	if err != nil {
 		gwire.Close()
 		return nil, err
@@ -61,6 +63,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		}
 		kilog.Debug("Connected to node %v...", string([]byte(ele.PublicKey)[:10]))
 	}
+	kilog.Debug("Got to c")
 	_, err = wire.Write([]byte("\000"))
 	if err != nil {
 		gwire.Close()
