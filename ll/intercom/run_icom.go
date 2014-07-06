@@ -67,9 +67,11 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 						return
 					}
 				}
-				select {
-				case junk_chan <- true:
-				default:
+				if xaxa.flag == icom_data {
+					select {
+					case junk_chan <- true:
+					default:
+					}
 				}
 			}
 		}
