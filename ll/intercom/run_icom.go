@@ -15,6 +15,33 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	stable_lock <- true
 
 	prob_dist := MakeProbDistro()
+	junk_chan := make(chan bool, 1024)
+
+	// Write junk echo packets to mask webpage loading
+	go func() {
+		defer KILL()
+		for {
+			select {
+			case <-ctx.killswitch:
+				return
+			case <-junk_chan:
+				// Draw a waiting period
+				wsecs := rand.ExpFloat64() * 2
+				wms := int64(wsecs * 1000)
+				// Spin off a goroutine to do this!
+				go func() {
+					time.Sleep(time.Millisecond * time.Duration(wms))
+					desired_size := prob_dist.Draw()
+					prob_dist.Juggle()
+					select {
+					case <-ctx.killswitch:
+					case ctx.write_ch <- icom_msg{icom_ignore,
+						0, make([]byte, desired_size)}:
+					}
+				}()
+			}
+		}
+	}()
 
 	// Write packets
 	go func() {
@@ -39,6 +66,10 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 						kilog.Debug("** icom_ctx dead @ write ** due to %s", err.Error())
 						return
 					}
+				}
+				select {
+				case junk_chan <- true:
+				default:
 				}
 			}
 		}
@@ -111,7 +142,10 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 		}
 		if justread.flag == icom_open && is_server {
 			// Open a connection! The caller of accept will unblock this call.
-			conn := VSConnect(ctx.our_srv)
+			conn, err := VSConnect(ctx.our_srv)
+			if err != nil {
+				return
+			}
 			xaxa := make(chan icom_msg, 2048)
 			<-stable_lock
 			socket_table[justread.connid] = xaxa

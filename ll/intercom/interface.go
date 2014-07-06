@@ -101,6 +101,6 @@ func (dialer *IntercomDialer) Dial(host string) (io.ReadWriteCloser, error) {
 	case <-dialer.mapping[host].killswitch:
 		return nil, errors.New("Connection keeps on failing.")
 	default:
-		return VSConnect(dialer.mapping[host].our_srv), nil
+		return VSConnect(dialer.mapping[host].our_srv)
 	}
 }

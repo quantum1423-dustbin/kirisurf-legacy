@@ -47,11 +47,16 @@ func (vs *VirtualServer) Accept() (io.ReadWriteCloser, error) {
 	return toret, nil
 }
 
-func VSConnect(tgt *VirtualServer) io.ReadWriteCloser {
+func VSConnect(tgt *VirtualServer) (rw io.ReadWriteCloser, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = errors.New("Channel closed")
+		}
+	}()
 	toret := new_vs()
 	tosend := toret.Flipped()
 	tgt.vs_ch <- tosend
-	return toret
+	return toret, nil
 }
 
 func VSListen() *VirtualServer {
