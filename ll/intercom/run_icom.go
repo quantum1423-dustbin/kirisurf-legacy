@@ -1,6 +1,7 @@
 package intercom
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"time"
@@ -21,24 +22,16 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	go func() {
 		defer KILL()
 		for {
+			desired_size := prob_dist.Draw()
 			select {
 			case <-ctx.killswitch:
 				return
 			case <-junk_chan:
-				// Draw a waiting period
-				wsecs := rand.ExpFloat64() * 2
-				wms := int64(wsecs * 1000)
-				// Spin off a goroutine to do this!
-				go func() {
-					time.Sleep(time.Millisecond * time.Duration(wms))
-					desired_size := prob_dist.Draw()
-					prob_dist.Juggle()
-					select {
-					case <-ctx.killswitch:
-					case ctx.write_ch <- icom_msg{icom_ignore,
-						0, make([]byte, desired_size)}:
-					}
-				}()
+				select {
+				case <-ctx.killswitch:
+				case ctx.write_ch <- icom_msg{icom_ignore,
+					0, make([]byte, desired_size)}:
+				}
 			}
 		}
 	}()
@@ -51,27 +44,31 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			case <-ctx.killswitch:
 				return
 			case xaxa := <-ctx.write_ch:
+				buffer := new(bytes.Buffer)
 				desired_size := prob_dist.Draw()
 				prob_dist.Juggle()
-				err := xaxa.WriteTo(ctx.underlying)
-				if err != nil {
-					kilog.Debug("** icom_ctx dead @ write ** due to %s", err.Error())
-					return
-				}
+				xaxa.WriteTo(buffer)
 				if desired_size > len(xaxa.body) {
 					excess := desired_size - len(xaxa.body)
 					padd := icom_msg{icom_ignore, 0, make([]byte, excess)}
-					err := padd.WriteTo(ctx.underlying)
-					if err != nil {
-						kilog.Debug("** icom_ctx dead @ write ** due to %s", err.Error())
-						return
-					}
+					padd.WriteTo(buffer)
 				}
 				if xaxa.flag == icom_data {
-					select {
-					case junk_chan <- true:
-					default:
-					}
+					// Draw a waiting period
+					wsecs := rand.ExpFloat64() * 3
+					wms := int64(wsecs * 1000)
+					// Spin off a goroutine to do this!
+					go func() {
+						time.Sleep(time.Millisecond * time.Duration(wms))
+						select {
+						case junk_chan <- true:
+						default:
+						}
+					}()
+				}
+				_, err := ctx.underlying.Write(buffer.Bytes())
+				if err != nil {
+					return
 				}
 			}
 		}
