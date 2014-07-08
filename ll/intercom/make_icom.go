@@ -2,7 +2,6 @@ package intercom
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 	"runtime"
 	"sync"
@@ -82,7 +81,6 @@ func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool) *icom_ctx {
 	ctx.killswitch = killswitch
 	var _ks_exec sync.Once
 	KILL := func() {
-		fmt.Println("globkilled!")
 		_ks_exec.Do(func() {
 			ctx.underlying.Close()
 			ctx.is_dead = true

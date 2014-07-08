@@ -1,7 +1,6 @@
 package intercom
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -54,5 +53,4 @@ func (pipe *BufferedPipe) Close() error {
 
 func init() {
 	_bplist, _ = net.Listen("tcp", "127.0.0.1:0")
-	fmt.Println("init done")
 }
