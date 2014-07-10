@@ -88,10 +88,5 @@ func (pipe *BufferedPipe) Read(p []byte) (int, error) {
 	if !rslt {
 		return 0, io.EOF
 	}
-	<-pipe.lock
-	if len(pipe.buffer) == 0 {
-		panic("WTF is this? Why was the data_avail event signalled but NO data was in the buffer?")
-	}
-	pipe.lock <- true
 	return pipe.Read(p)
 }
