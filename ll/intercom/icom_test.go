@@ -11,7 +11,7 @@ import (
 )
 
 func TestICOM_HelloWorld(t *testing.T) {
-	listener := MakeIntercomServer("booger@127.0.0.1:12345")
+	listener := MakeIntercomServer("booger@127.0.0.1:12346")
 	go func() {
 		for {
 			thing := listener.Accept()
@@ -26,7 +26,7 @@ func TestICOM_HelloWorld(t *testing.T) {
 		}
 	}()
 	dialer := MakeIntercomDialer()
-	connection, err := dialer.Dial("booger@127.0.0.1:12345")
+	connection, err := dialer.Dial("booger@127.0.0.1:12346")
 	if err != nil {
 		fmt.Println(err.Error())
 		t.FailNow()
@@ -35,7 +35,7 @@ func TestICOM_HelloWorld(t *testing.T) {
 }
 
 func TestICOM_13371(t *testing.T) {
-	//t.Skip("This test is interactive!")
+	t.Skip("This test is interactive!")
 	listener := MakeIntercomServer("stuff@127.0.0.1:1234")
 	go func() {
 		for {

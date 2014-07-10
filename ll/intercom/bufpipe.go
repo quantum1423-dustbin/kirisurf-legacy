@@ -10,47 +10,88 @@ var _bplock sync.Mutex
 var _bplist net.Listener
 
 type BufferedPipe struct {
-	reader io.ReadWriteCloser
-	writer io.ReadWriteCloser
-	wmutex sync.Mutex
-	rmutex sync.Mutex
+	buffer      []byte
+	data_avail  chan bool
+	lock        chan bool
+	closed      bool
+	buffer_free chan bool
 }
 
 func NewBufferedPipe() *BufferedPipe {
-	_bplock.Lock()
-	defer _bplock.Unlock()
-	writer, err := net.Dial("tcp", _bplist.Addr().String())
-	if err != nil {
-		panic("wtf")
-	}
-	reader, err := _bplist.Accept()
-	if err != nil {
-		panic("wtf")
-	}
 	toret := new(BufferedPipe)
-	toret.reader = reader
-	toret.writer = writer
+	toret.data_avail = make(chan bool)
+	toret.buffer = make([]byte, 0)
+	toret.closed = false
+	toret.lock = make(chan bool, 1)
+	toret.lock <- true
+	toret.buffer_free = make(chan bool, 1)
 	return toret
 }
 
-func (pipe *BufferedPipe) Read(p []byte) (int, error) {
-	//pipe.rmutex.Lock()
-	//defer pipe.rmutex.Unlock()
-	return pipe.reader.Read(p)
+func (pipe *BufferedPipe) Close() error {
+	<-pipe.lock
+	if pipe.closed {
+		pipe.lock <- true
+		return nil
+	}
+	pipe.closed = true
+	pipe.lock <- true
+	select {
+	case pipe.data_avail <- false:
+	default:
+	}
+	return nil
 }
 
 func (pipe *BufferedPipe) Write(p []byte) (int, error) {
-	//pipe.wmutex.Lock()
-	//defer pipe.wmutex.Unlock()
-	return pipe.writer.Write(p)
+	<-pipe.lock
+	if pipe.closed {
+		pipe.lock <- true
+		return 0, io.ErrClosedPipe
+	}
+	if len(pipe.buffer) > 65536 {
+		pipe.lock <- true
+		//fmt.Println("Wait until buffer is flushed...")
+		<-pipe.buffer_free
+		return pipe.Write(p)
+	}
+
+	pipe.buffer = append(pipe.buffer, p...)
+	pipe.lock <- true
+	select {
+	case pipe.data_avail <- true:
+	default:
+	}
+	//fmt.Println("Write()")
+	return len(p), nil
 }
 
-func (pipe *BufferedPipe) Close() error {
-	//pipe.wmutex.Lock()
-	//defer pipe.wmutex.Unlock()
-	return pipe.writer.Close()
-}
-
-func init() {
-	_bplist, _ = net.Listen("tcp", "127.0.0.1:0")
+func (pipe *BufferedPipe) Read(p []byte) (int, error) {
+	<-pipe.lock
+	if len(pipe.buffer) != 0 {
+		cbts := copy(p, pipe.buffer)
+		pipe.buffer = pipe.buffer[cbts:]
+		pipe.lock <- true
+		return cbts, nil
+	}
+	if pipe.closed {
+		pipe.lock <- true
+		return 0, io.EOF
+	}
+	//fmt.Println("telling people buff now free")
+	select {
+	case pipe.buffer_free <- true:
+	default:
+	}
+	pipe.lock <- true
+	rslt := <-pipe.data_avail
+	if !rslt {
+		return 0, io.EOF
+	}
+	<-pipe.lock
+	if len(pipe.buffer) == 0 {
+		panic("WTF is this? Why was the data_avail event signalled but NO data was in the buffer?")
+	}
+	pipe.lock <- true
+	return pipe.Read(p)
 }

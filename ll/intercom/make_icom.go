@@ -3,7 +3,6 @@ package intercom
 import (
 	"encoding/binary"
 	"io"
-	"runtime"
 	"sync"
 )
 
@@ -24,7 +23,6 @@ type icom_msg struct {
 }
 
 func (xaxa *icom_msg) WriteTo(writer io.Writer) error {
-	defer runtime.Gosched()
 	scratch := make([]byte, len(xaxa.body)+5)
 	scratch[0] = byte(xaxa.flag)
 	binary.LittleEndian.PutUint16(scratch[1:3], uint16(xaxa.connid))
@@ -35,7 +33,6 @@ func (xaxa *icom_msg) WriteTo(writer io.Writer) error {
 }
 
 func (xaxa *icom_msg) ReadFrom(reader io.Reader) error {
-	defer runtime.Gosched()
 	mdat := make([]byte, 3)
 	_, err := io.ReadFull(reader, mdat)
 	if err != nil {
