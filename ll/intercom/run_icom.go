@@ -21,7 +21,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	go func() {
 		defer KILL()
 		for {
-			desired_size := prob_dist.Draw()
+			desired_size := prob_dist.Draw() * 4
 			select {
 			case <-ctx.killswitch:
 				return
