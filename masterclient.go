@@ -29,6 +29,11 @@ func run_client_loop() {
 	circ_ch <- produce_circ()
 	set_gui_progress(1.0)
 	INFO("Bootstrapping 100%%: client started!")
+	go func() {
+		for i := 0; i < 5; i++ {
+			circ_ch <- produce_circ()
+		}
+	}()
 	for {
 		nconn, err := listener.Accept()
 		if err != nil {
@@ -38,11 +43,14 @@ func run_client_loop() {
 		go func() {
 			defer nconn.Close()
 			newcirc := <-circ_ch
-			circ_ch <- newcirc
 			remote, err := newcirc.SocksAccept(nconn)
 			if err != nil {
-				panic("Can only panic for now!")
+				dirclient.RefreshDirectory()
+				go func() {
+					circ_ch <- produce_circ()
+				}()
 			}
+			circ_ch <- newcirc
 			defer remote.Close()
 			go func() {
 				defer remote.Close()
