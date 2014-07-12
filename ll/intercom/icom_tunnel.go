@@ -86,7 +86,9 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 
 	// Encapsulate
 	func() {
-		defer local_kill()
+		defer func() {
+			<-xaxa
+		}()
 		buff := make([]byte, 8192)
 		for {
 			select {
@@ -117,8 +119,5 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 				}
 			}
 		}
-	}()
-	defer func() {
-		<-xaxa
 	}()
 }

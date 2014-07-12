@@ -152,7 +152,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			justread.flag == icom_more {
 			<-stable_lock
 			if socket_table[justread.connid] == nil {
-				kilog.Debug("Tried to send packet to nonexistent connid!\n%s", string(justread.body))
+				kilog.Debug("Tried to send packet to nonexistent connid!\n%X", justread.body)
 				stable_lock <- true
 				return
 			}
