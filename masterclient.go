@@ -40,10 +40,10 @@ func run_client_loop() {
 			newcirc := <-circ_ch
 			circ_ch <- newcirc
 			remote, err := newcirc.SocksAccept(nconn)
-			defer remote.Close()
 			if err != nil {
 				panic("Can only panic for now!")
 			}
+			defer remote.Close()
 			go func() {
 				defer remote.Close()
 				io.Copy(remote, nconn)

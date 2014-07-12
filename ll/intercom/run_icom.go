@@ -8,7 +8,7 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
+func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 	defer KILL()
 	socket_table := make([]chan icom_msg, 65536)
 	stable_lock := make(chan bool, 1)
@@ -18,22 +18,24 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	junk_chan := make(chan bool, 1024)
 
 	// Write junk echo packets to mask webpage loading
-	go func() {
-		defer KILL()
-		for {
-			desired_size := prob_dist.Draw() * 4
-			select {
-			case <-ctx.killswitch:
-				return
-			case <-junk_chan:
+	if do_junk {
+		go func() {
+			defer KILL()
+			for {
+				desired_size := prob_dist.Draw() * 4
 				select {
 				case <-ctx.killswitch:
-				case ctx.write_ch <- icom_msg{icom_ignore,
-					0, make([]byte, desired_size)}:
+					return
+				case <-junk_chan:
+					select {
+					case <-ctx.killswitch:
+					case ctx.write_ch <- icom_msg{icom_ignore,
+						0, make([]byte, desired_size)}:
+					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 
 	// Write packets
 	go func() {
@@ -47,12 +49,12 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 				desired_size := prob_dist.Draw()
 				prob_dist.Juggle()
 				xaxa.WriteTo(buffer)
-				if desired_size > len(xaxa.body) {
+				if desired_size > len(xaxa.body) && do_junk {
 					excess := desired_size - len(xaxa.body)
 					padd := icom_msg{icom_ignore, 0, make([]byte, excess)}
 					padd.WriteTo(buffer)
 				}
-				if xaxa.flag == icom_data {
+				if xaxa.flag == icom_data && do_junk {
 					// Draw a waiting period
 					wsecs := rand.ExpFloat64() * 3
 					wms := int64(wsecs * 1000)
@@ -74,20 +76,22 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 	}()
 
 	// Keepalive pakkets
-	go func() {
-		for {
-			select {
-			case <-ctx.killswitch:
-				return
-			case <-time.After(time.Second * time.Duration(rand.Int()%10)):
+	if do_junk {
+		go func() {
+			for {
 				select {
 				case <-ctx.killswitch:
 					return
-				case ctx.write_ch <- icom_msg{icom_ignore, 0, make([]byte, 0)}:
+				case <-time.After(time.Second * time.Duration(rand.Int()%10)):
+					select {
+					case <-ctx.killswitch:
+						return
+					case ctx.write_ch <- icom_msg{icom_ignore, 0, make([]byte, 0)}:
+					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 
 	// Client side. Writes stuff.
 	if !is_server {
@@ -152,7 +156,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			justread.flag == icom_more {
 			<-stable_lock
 			if socket_table[justread.connid] == nil {
-				kilog.Debug("Tried to send packet to nonexistent connid!\n%X", justread.body)
+				kilog.Debug("Tried to send packet to nonexistent connid!\n%s", string(justread.body))
 				stable_lock <- true
 				return
 			}
@@ -169,6 +173,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool) {
 			<-stable_lock
 			if socket_table[justread.connid] == nil {
 				kilog.Debug("Tried to send packet to nonexistent connid!\n%v", justread)
+				stable_lock <- true
 				continue
 			}
 			ch := socket_table[justread.connid]

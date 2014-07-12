@@ -34,8 +34,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 	}()
 
 	// Semaphore for send flow control
-	fctl := make(chan bool, 2048)
-	for i := 0; i < 2048; i++ {
+	fctl := make(chan bool, 512)
+	for i := 0; i < 512; i++ {
 		select {
 		case fctl <- true:
 		default:
@@ -73,7 +73,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 						}()
 					}
 				} else if pkt.flag == icom_more {
-					for i := 0; i < 2048; i++ {
+					for i := 0; i < 512; i++ {
 						select {
 						case fctl <- true:
 						default:
@@ -86,9 +86,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 
 	// Encapsulate
 	func() {
-		defer func() {
-			<-xaxa
-		}()
+		defer local_kill()
 		buff := make([]byte, 8192)
 		for {
 			select {
@@ -119,5 +117,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 				}
 			}
 		}
+	}()
+	defer func() {
+		<-xaxa
 	}()
 }

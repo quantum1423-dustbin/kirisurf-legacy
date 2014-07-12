@@ -34,7 +34,7 @@ func MakeIntercomServer(laddr string) IntercomServer {
 				panic(err.Error())
 			}
 			go func() {
-				ctx := make_icom_ctx(realclient, true)
+				ctx := make_icom_ctx(realclient, true, true)
 				go func() {
 					defer realclient.Close()
 					for {
@@ -80,7 +80,7 @@ func (dialer *IntercomDialer) Dial(host string) (io.ReadWriteCloser, error) {
 		if err != nil {
 			return nil, err
 		}
-		dialer.mapping[host] = make_icom_ctx(really, false)
+		dialer.mapping[host] = make_icom_ctx(really, false, true)
 	}
 	for i := 0; i < 10; i++ {
 		select {
@@ -93,7 +93,7 @@ func (dialer *IntercomDialer) Dial(host string) (io.ReadWriteCloser, error) {
 			if err != nil {
 				return nil, err
 			}
-			dialer.mapping[host] = make_icom_ctx(really, false)
+			dialer.mapping[host] = make_icom_ctx(really, false, true)
 		default:
 		}
 	}

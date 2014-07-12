@@ -66,7 +66,7 @@ const (
 	icom_more  = 0x13
 )
 
-func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool) *icom_ctx {
+func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool, do_junk bool) *icom_ctx {
 	ctx := new(icom_ctx)
 	ctx.is_dead = false
 	ctx.underlying = underlying
@@ -87,7 +87,7 @@ func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool) *icom_ctx {
 	}
 
 	// Run the main thing
-	go run_icom_ctx(ctx, KILL, is_server)
+	go run_icom_ctx(ctx, KILL, is_server, do_junk)
 
 	return ctx
 }

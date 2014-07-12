@@ -11,7 +11,7 @@ type MultiplexClient struct {
 }
 
 func MakeMultiplexClient(transport io.ReadWriteCloser) MultiplexClient {
-	return MultiplexClient{make_icom_ctx(transport, false)}
+	return MultiplexClient{make_icom_ctx(transport, false, false)}
 }
 
 func (ctx MultiplexClient) SocksAccept(client io.ReadWriteCloser) (io.ReadWriteCloser, error) {
@@ -28,7 +28,7 @@ func (ctx *MultiplexClient) Alive() bool {
 }
 
 func RunMultiplexServer(transport io.ReadWriteCloser) {
-	ctx := make_icom_ctx(transport, true)
+	ctx := make_icom_ctx(transport, true, false)
 	for {
 		thing, err := ctx.our_srv.Accept()
 		if err != nil {
