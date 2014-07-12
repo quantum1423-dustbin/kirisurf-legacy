@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+var Socks5Handshake = socks5_handshake
+
 func socks5_handshake(conn io.ReadWriteCloser) (string, error) {
 	scratch := make([]byte, 128)
 	_, err := io.ReadFull(conn, scratch[:2])

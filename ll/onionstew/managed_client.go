@@ -4,9 +4,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"io"
-	"time"
-
-	"github.com/KirisurfProject/kilog"
 )
 
 // An onionstew.ManagedClient object represents an onion stew client to a single
@@ -22,11 +19,6 @@ type ManagedClient struct {
 }
 
 func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, error) {
-	rand256 := func() int {
-		gah := make([]byte, 1)
-		rand.Read(gah)
-		return int(gah[0])
-	}
 
 	toret := new(ManagedClient)
 	toret.stew_id = make([]byte, 16)
@@ -42,56 +34,24 @@ func MakeManagedClient(sc_generate func() io.ReadWriteCloser) (*ManagedClient, e
 	}()
 
 	go toret.underlying.run_stew(false)
-
-	// First subcircuit
 	first_sc := sc_generate()
 	_, err := first_sc.Write(toret.stew_id)
 	if err != nil {
 		return nil, errors.New("Cannot create SC successfully! (%s)")
 	}
-
 	go toret.underlying.llctx.AttachSC(first_sc, false)
 
-	// Spin off a goroutine that constantly adds/removes subcircuits
 	go func() {
-		ctr := 1
-		for {
-			// Sleep between 1 and 64 seconds
-			select {
-			case <-time.After(time.Second * time.Duration(1+rand256()%64)):
-			case <-toret.underlying.killswitch:
+		// 6 subcircuits
+		for i := 0; i < 6; i++ {
+			first_sc := sc_generate()
+			_, err := first_sc.Write(toret.stew_id)
+			if err != nil {
+				toret.underlying.destroy()
 				return
 			}
-			octr := ctr
-			if ctr < 3 {
-				// Too little subcircuits, add one!
-				sc := sc_generate()
-				_, err := sc.Write(toret.stew_id)
-				if err != nil {
-					kilog.Warning("What? Subcircuit add failed!")
-				}
-				go toret.underlying.llctx.AttachSC(sc, false)
-				ctr++
-			} else if ctr > 12 {
-				// Too many subcircuits, remove one!
-				close(<-toret.underlying.llctx.close_ch_ch)
-				ctr--
-			} else {
-				// Randomly decide
-				if rand256() < 128 {
-					sc := sc_generate()
-					_, err := sc.Write(toret.stew_id)
-					if err != nil {
-						kilog.Warning("What? Subcircuit add failed!")
-					}
-					go toret.underlying.llctx.AttachSC(sc, false)
-					ctr++
-				} else {
-					close(<-toret.underlying.llctx.close_ch_ch)
-					ctr--
-				}
-			}
-			kilog.Debug("Subcircuit count changed from %d to %d!", octr, ctr)
+
+			go toret.underlying.llctx.AttachSC(first_sc, false)
 		}
 	}()
 

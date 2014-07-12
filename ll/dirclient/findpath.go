@@ -7,6 +7,12 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
+func FindOnePath(guidelen int) []KNode {
+	protector.RLock()
+	defer protector.RUnlock()
+	return FindPath(KDirectory, guidelen)
+}
+
 func FindPathGroup(guidelen int) [][]KNode {
 	protector.RLock()
 	defer protector.RUnlock()

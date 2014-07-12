@@ -33,6 +33,13 @@ func sc_server_real_handler(_wire io.ReadWriteCloser) (err error) {
 			return nil
 		}
 		kilog.Debug("terminating")
+		e2e_server_handler_old(wire)
+	} else if thing[0] == 255 {
+		// Terminate with NEW GENERATION
+		if !MasterConfig.General.IsExit {
+			return nil
+		}
+		kilog.Debug("terminating NG")
 		e2e_server_handler(wire)
 	} else {
 		xaxa := make([]byte, thing[0])
