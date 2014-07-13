@@ -111,11 +111,12 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
 				fmt.Printf("Remaining %d\n", len(fctl))
-				select {
-				case <-fctl:
-				case <-local_close:
-					return
-				}
+				/*
+					select {
+					case <-fctl:
+					case <-local_close:
+						return
+					}*/
 				select {
 				case ctx.write_ch <- icom_msg{icom_data, connid, xaxa}:
 				case <-local_close:
