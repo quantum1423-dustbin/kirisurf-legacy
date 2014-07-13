@@ -110,8 +110,10 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
+				fmt.Println("Waiting for fctl")
 				select {
 				case <-fctl:
+					fmt.Println("Got fctl")
 				case <-local_close:
 					return
 				}
