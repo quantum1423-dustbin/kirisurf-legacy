@@ -71,13 +71,11 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 							select {
 							case ctx.write_ch <- icom_msg{icom_more, connid,
 								make([]byte, 0)}:
-								fmt.Println("Sent icom_more", do_junk)
 							case <-ctx.killswitch:
 							}
 						}()
 					}
 				} else if pkt.flag == icom_more {
-					fmt.Println("Got icom_more", do_junk)
 					for i := 0; i < PAUSELIM; i++ {
 						fctl <- true
 					}
@@ -89,7 +87,10 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 	// Encapsulate
 	func() {
 		defer local_kill()
-		buff := make([]byte, 2048)
+		buff := make([]byte, 8192)
+		if !do_junk {
+			buff = make([]byte, 4096)
+		}
 		for {
 			select {
 			case <-local_close:
@@ -106,9 +107,6 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
-				if do_junk {
-					fmt.Println("do_junk, fctl", len(fctl))
-				}
 				select {
 				case <-fctl:
 				case <-local_close:
