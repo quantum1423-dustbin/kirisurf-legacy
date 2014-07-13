@@ -9,7 +9,7 @@ import (
 func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 	connid int, reader chan icom_msg, do_junk bool) {
 
-	PAUSELIM := 256
+	PAUSELIM := 16
 	if do_junk {
 		PAUSELIM = 512
 	}

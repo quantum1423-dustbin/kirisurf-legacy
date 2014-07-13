@@ -71,7 +71,7 @@ func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool, do_junk bool) 
 	ctx.is_dead = false
 	ctx.underlying = underlying
 	ctx.our_srv = VSListen()
-	ctx.write_ch = make(chan icom_msg, 4)
+	ctx.write_ch = make(chan icom_msg)
 
 	// Killswitch is closed when the entire ctx should be abandoned.
 	killswitch := make(chan bool)
