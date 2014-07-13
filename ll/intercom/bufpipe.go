@@ -4,7 +4,6 @@ import (
 	"io"
 	"net"
 	"sync"
-	"time"
 )
 
 var _bplock sync.Mutex
@@ -56,11 +55,11 @@ func (pipe *BufferedPipe) Write(p []byte) (int, error) {
 		return pipe.Write(p)
 	}
 
+	oldlen := len(pipe.buffer)
 	pipe.buffer = append(pipe.buffer, p...)
 	pipe.lock <- true
-	select {
-	case pipe.data_avail <- true:
-	default:
+	if oldlen == 0 {
+		pipe.data_avail <- true
 	}
 	return len(p), nil
 }
@@ -88,7 +87,6 @@ func (pipe *BufferedPipe) Read(p []byte) (int, error) {
 		if !rslt {
 			return 0, io.EOF
 		}
-	case <-time.After(time.Second):
 	}
 	return pipe.Read(p)
 }
