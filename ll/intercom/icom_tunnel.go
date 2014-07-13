@@ -1,6 +1,7 @@
 package intercom
 
 import (
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -70,11 +71,13 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 							select {
 							case ctx.write_ch <- icom_msg{icom_more, connid,
 								make([]byte, 0)}:
+								fmt.Println("Sent icom_more")
 							case <-ctx.killswitch:
 							}
 						}()
 					}
 				} else if pkt.flag == icom_more {
+					fmt.Println("Got icom_more")
 					for i := 0; i < 256; i++ {
 						select {
 						case fctl <- true:
