@@ -46,10 +46,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 	// Semaphore for send flow control
 	fctl := make(chan bool, PAUSELIM)
 	for i := 0; i < PAUSELIM; i++ {
-		select {
-		case fctl <- true:
-		default:
-		}
+		fctl <- true
 	}
 	// De-encapsulate
 	go func() {
@@ -82,10 +79,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				} else if pkt.flag == icom_more {
 					fmt.Println("Got icom_more", do_junk)
 					for i := 0; i < PAUSELIM; i++ {
-						select {
-						case fctl <- true:
-						default:
-						}
+						fctl <- true
 					}
 				}
 			}
