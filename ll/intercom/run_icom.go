@@ -119,7 +119,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				socket_table[connid] = xaxa
 				stable_lock <- true
 				go func() {
-					icom_tunnel(ctx, KILL, incoming, connid, xaxa)
+					icom_tunnel(ctx, KILL, incoming, connid, xaxa, do_junk)
 					<-stable_lock
 					socket_table[connid] = nil
 					stable_lock <- true
@@ -152,7 +152,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			socket_table[justread.connid] = xaxa
 			stable_lock <- true
 			// Tunnel the connection
-			go icom_tunnel(ctx, KILL, conn, justread.connid, xaxa)
+			go icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
 		} else if justread.flag == icom_data ||
 			justread.flag == icom_more {
 			<-stable_lock

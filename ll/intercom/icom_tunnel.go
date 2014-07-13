@@ -7,7 +7,12 @@ import (
 )
 
 func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
-	connid int, reader chan icom_msg) {
+	connid int, reader chan icom_msg, do_junk bool) {
+
+	PAUSELIM := 256
+	if do_junk {
+		PAUSELIM = 512
+	}
 
 	local_close := make(chan bool)
 	var _thing sync.Once
@@ -36,8 +41,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 	}()
 
 	// Semaphore for send flow control
-	fctl := make(chan bool, 512)
-	for i := 0; i < 512; i++ {
+	fctl := make(chan bool, PAUSELIM)
+	for i := 0; i < PAUSELIM; i++ {
 		select {
 		case fctl <- true:
 		default:
@@ -61,7 +66,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 					if err != nil {
 						return
 					}
-					if i%512 == 0 {
+					if i%uint64(PAUSELIM) == 0 {
 						go func() {
 							select {
 							case ctx.write_ch <- icom_msg{icom_more, connid,
@@ -73,7 +78,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 					}
 				} else if pkt.flag == icom_more {
 					fmt.Println("Got icom_more")
-					for i := 0; i < 512; i++ {
+					for i := 0; i < PAUSELIM; i++ {
 						select {
 						case fctl <- true:
 						default:
