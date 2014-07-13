@@ -50,6 +50,7 @@ func run_client_loop() {
 				go func() {
 					circ_ch <- produce_circ()
 				}()
+				return
 			}
 			circ_ch <- newcirc
 			defer remote.Close()
