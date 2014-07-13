@@ -13,6 +13,9 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 	if do_junk {
 		PAUSELIM = 512
 	}
+	if !do_junk {
+		fmt.Println(PAUSELIM)
+	}
 
 	local_close := make(chan bool)
 	var _thing sync.Once
@@ -109,7 +112,9 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
-				fmt.Println("!do_junk, fctl=%d", len(fctl))
+				if !do_junk {
+					fmt.Println("!do_junk, fctl=%d", len(fctl))
+				}
 				select {
 				case <-fctl:
 				case <-local_close:
