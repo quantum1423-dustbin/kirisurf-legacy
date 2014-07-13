@@ -109,11 +109,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
-				if do_junk {
-					fmt.Println("do_junk, fctl=%d", len(fctl))
-				} else {
-					fmt.Println("!do_junk, fctl=%d", len(fctl))
-				}
+				fmt.Println("!do_junk, fctl=%d", len(fctl))
 				select {
 				case <-fctl:
 				case <-local_close:
