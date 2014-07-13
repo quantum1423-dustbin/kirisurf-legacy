@@ -4,6 +4,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 var _bplock sync.Mutex
@@ -59,6 +60,7 @@ func (pipe *BufferedPipe) Write(p []byte) (int, error) {
 	pipe.lock <- true
 	select {
 	case pipe.data_avail <- true:
+	case <-time.After(time.Millisecond * 400):
 	default:
 	}
 	return len(p), nil
