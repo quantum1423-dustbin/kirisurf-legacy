@@ -61,7 +61,6 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 					return
 				} else if pkt.flag == icom_data {
 					i++
-					fmt.Println(i)
 					// Is of data. Into puttings.
 					_, err := conn.Write(pkt.body)
 					if err != nil {
@@ -111,9 +110,9 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
+				fmt.Printf("Remaining %d\n", len(fctl))
 				select {
 				case <-fctl:
-					fmt.Printf("Remaining %d\n", len(fctl))
 				case <-local_close:
 					return
 				}
