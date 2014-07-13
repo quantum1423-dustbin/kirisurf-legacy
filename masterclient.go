@@ -29,11 +29,12 @@ func run_client_loop() {
 	circ_ch <- produce_circ()
 	set_gui_progress(1.0)
 	INFO("Bootstrapping 100%%: client started!")
-	go func() {
-		for i := 0; i < 5; i++ {
-			circ_ch <- produce_circ()
-		}
-	}()
+	/*
+		go func() {
+			for i := 0; i < 5; i++ {
+				circ_ch <- produce_circ()
+			}
+		}()*/
 	for {
 		nconn, err := listener.Accept()
 		if err != nil {
