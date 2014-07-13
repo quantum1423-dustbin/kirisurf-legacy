@@ -88,7 +88,7 @@ func (pipe *BufferedPipe) Read(p []byte) (int, error) {
 		if !rslt {
 			return 0, io.EOF
 		}
-	case <-time.After(time.Second * 2):
+	case <-time.After(time.Second * 10):
 	}
 	return pipe.Read(p)
 }
