@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"sync"
-	"time"
 )
 
 func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
@@ -44,12 +43,8 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 		default:
 		}
 	}
-	xaxa := make(chan bool)
 	// De-encapsulate
 	go func() {
-		defer func() {
-			xaxa <- true
-		}()
 		defer local_kill()
 		i := uint64(0)
 		for {
@@ -101,8 +96,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				n, err := conn.Read(buff)
 				if err != nil {
 					select {
-					case <-time.After(time.Second):
-						ctx.write_ch <- icom_msg{icom_close, connid, make([]byte, 0)}
+					case ctx.write_ch <- icom_msg{icom_close, connid, make([]byte, 0)}:
 					case <-local_close:
 						return
 					}
@@ -110,13 +104,6 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 				xaxa := make([]byte, n)
 				copy(xaxa, buff)
-				fmt.Printf("Remaining %d\n", len(fctl))
-				select {
-				case <-fctl:
-					fctl <- true
-				default:
-					fmt.Println("fctl...")
-				}
 				select {
 				case <-fctl:
 				case <-local_close:
@@ -129,8 +116,5 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 				}
 			}
 		}
-	}()
-	defer func() {
-		<-xaxa
 	}()
 }
