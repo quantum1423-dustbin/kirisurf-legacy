@@ -4,6 +4,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 var _bplock sync.Mutex
@@ -82,9 +83,12 @@ func (pipe *BufferedPipe) Read(p []byte) (int, error) {
 	default:
 	}
 	pipe.lock <- true
-	rslt := <-pipe.data_avail
-	if !rslt {
-		return 0, io.EOF
+	select {
+	case rslt := <-pipe.data_avail:
+		if !rslt {
+			return 0, io.EOF
+		}
+	case <-time.After(time.Second * 2):
 	}
 	return pipe.Read(p)
 }
