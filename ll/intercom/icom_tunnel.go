@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int, reader chan icom_msg) {
+func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
+	connid int, reader chan icom_msg) {
+
 	local_close := make(chan bool)
 	var _thing sync.Once
 	local_kill := func() {
@@ -87,7 +89,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser, connid int
 	// Encapsulate
 	func() {
 		defer local_kill()
-		buff := make([]byte, 8192)
+		buff := make([]byte, 2048)
 		for {
 			select {
 			case <-local_close:

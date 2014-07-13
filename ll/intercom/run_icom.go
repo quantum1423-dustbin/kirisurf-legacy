@@ -15,14 +15,14 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 	stable_lock <- true
 
 	prob_dist := MakeProbDistro()
-	junk_chan := make(chan bool, 1024)
+	junk_chan := make(chan bool)
 
 	// Write junk echo packets to mask webpage loading
 	if do_junk {
 		go func() {
 			defer KILL()
 			for {
-				desired_size := prob_dist.Draw() * 4
+				desired_size := prob_dist.Draw() * 2
 				select {
 				case <-ctx.killswitch:
 					return
@@ -31,6 +31,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 					case <-ctx.killswitch:
 					case ctx.write_ch <- icom_msg{icom_ignore,
 						0, make([]byte, desired_size)}:
+					default:
 					}
 				}
 			}
@@ -82,7 +83,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				select {
 				case <-ctx.killswitch:
 					return
-				case <-time.After(time.Second * time.Duration(rand.Int()%10)):
+				case <-time.After(time.Second * time.Duration(rand.Int()%15)):
 					select {
 					case <-ctx.killswitch:
 						return

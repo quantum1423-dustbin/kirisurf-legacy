@@ -1,4 +1,4 @@
-package main
+package socks5
 
 import (
 	"errors"
@@ -6,7 +6,27 @@ import (
 	"io"
 )
 
-func socks5_handshake(conn io.ReadWriteCloser) (string, error) {
+func CompleteRequest(conn io.ReadWriteCloser) error {
+	scratch := make([]byte, 128)
+	scratch[0] = 0x05
+	scratch[1] = 0x00
+	scratch[2] = 0x00
+	scratch[3] = 0x01
+	scratch[4] = 0x00
+	scratch[5] = 0x00
+	scratch[6] = 0x00
+	scratch[7] = 0x00
+	scratch[8] = 0x00
+	scratch[9] = 0x00
+
+	_, err := conn.Write(scratch[:10])
+	if err != nil {
+		return errors.New("Couldn't complete handshake")
+	}
+	return nil
+}
+
+func ReadRequest(conn io.ReadWriteCloser) (string, error) {
 	scratch := make([]byte, 128)
 	_, err := io.ReadFull(conn, scratch[:2])
 	if err != nil {
@@ -57,7 +77,6 @@ func socks5_handshake(conn io.ReadWriteCloser) (string, error) {
 		copy(thing[1:], scratch)
 		toret = string(thing[1:])
 	} else {
-		DEBUG("What? conntype=0x%x??", conntype)
 		return "", errors.New("conntype mismatch")
 	}
 	_, err = io.ReadFull(conn, scratch[:2])
@@ -66,21 +85,5 @@ func socks5_handshake(conn io.ReadWriteCloser) (string, error) {
 	}
 	portnum := int(scratch[0])*256 + int(scratch[1])
 	toret = fmt.Sprintf("%s:%d", toret, portnum)
-
-	scratch[0] = 0x05
-	scratch[1] = 0x00
-	scratch[2] = 0x00
-	scratch[3] = 0x01
-	scratch[4] = 0x00
-	scratch[5] = 0x00
-	scratch[6] = 0x00
-	scratch[7] = 0x00
-	scratch[8] = 0x00
-	scratch[9] = 0x00
-
-	_, err = conn.Write(scratch[:10])
-	if err != nil {
-		return "", errors.New("Couldn't complete handshake")
-	}
 	return toret, nil
 }

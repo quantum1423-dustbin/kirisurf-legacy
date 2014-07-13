@@ -81,7 +81,7 @@ func Obfs3fHandshake(wire net.Conn, is_server bool) (io.ReadWriteCloser, error) 
 }
 
 func (thing *Obfs3f) Write(p []byte) (int, error) {
-	thing.underlying.SetWriteDeadline(time.Now().Add(time.Second * 40))
+	thing.underlying.SetWriteDeadline(time.Now().Add(time.Second * 20))
 	xaxa := make([]byte, len(p))
 	copy(xaxa, p)
 	thing.write_rc4.XORKeyStream(xaxa, xaxa)
@@ -89,7 +89,7 @@ func (thing *Obfs3f) Write(p []byte) (int, error) {
 }
 
 func (thing *Obfs3f) Read(p []byte) (int, error) {
-	thing.underlying.SetReadDeadline(time.Now().Add(time.Second * 40))
+	thing.underlying.SetReadDeadline(time.Now().Add(time.Second * 20))
 	n, err := thing.underlying.Read(p)
 	if err != nil {
 		return 0, err

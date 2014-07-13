@@ -2,7 +2,7 @@ package intercom
 
 import (
 	"io"
-	"kirisurf/ll/onionstew"
+	"kirisurf/ll/socks5"
 	"net"
 )
 
@@ -36,11 +36,16 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 		}
 		go func() {
 			defer thing.Close()
-			addr, err := onionstew.Socks5Handshake(thing)
+			addr, err := socks5.ReadRequest(thing)
 			if err != nil {
 				return
 			}
 			remote, err := net.Dial("tcp", addr)
+			if err != nil {
+				return
+			}
+			defer remote.Close()
+			err = socks5.CompleteRequest(thing)
 			if err != nil {
 				return
 			}

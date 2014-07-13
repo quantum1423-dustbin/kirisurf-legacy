@@ -51,7 +51,6 @@ func (pipe *BufferedPipe) Write(p []byte) (int, error) {
 	}
 	if len(pipe.buffer) > 65536 {
 		pipe.lock <- true
-		//fmt.Println("Wait until buffer is flushed...")
 		<-pipe.buffer_free
 		return pipe.Write(p)
 	}
@@ -62,7 +61,6 @@ func (pipe *BufferedPipe) Write(p []byte) (int, error) {
 	case pipe.data_avail <- true:
 	default:
 	}
-	//fmt.Println("Write()")
 	return len(p), nil
 }
 
