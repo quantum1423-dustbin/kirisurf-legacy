@@ -60,7 +60,7 @@ func (pipe *BufferedPipe) Write(p []byte) (int, error) {
 	pipe.lock <- true
 	select {
 	case pipe.data_avail <- true:
-	case <-time.After(time.Millisecond * 400):
+	case <-time.After(time.Millisecond * 1000):
 	default:
 	}
 	return len(p), nil
