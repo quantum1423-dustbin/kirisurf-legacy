@@ -1,7 +1,6 @@
 package intercom
 
 import (
-	"fmt"
 	"io"
 	"sync"
 )
@@ -12,9 +11,6 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 	PAUSELIM := 2048
 	if do_junk {
 		PAUSELIM = 2048
-	}
-	if !do_junk {
-		fmt.Println(PAUSELIM)
 	}
 
 	local_close := make(chan bool)
