@@ -83,7 +83,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				select {
 				case <-ctx.killswitch:
 					return
-				case <-time.After(time.Second * time.Duration(rand.Int()%15)):
+				case <-time.After(time.Second * time.Duration(rand.Int()%5)):
 					select {
 					case <-ctx.killswitch:
 						return
