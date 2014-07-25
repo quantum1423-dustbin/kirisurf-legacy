@@ -4,6 +4,7 @@ import (
 	"io"
 	"kirisurf/ll/socks5"
 	"net"
+	"time"
 )
 
 type MultiplexClient struct {
@@ -40,7 +41,7 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 			if err != nil {
 				return
 			}
-			remote, err := net.Dial("tcp", addr)
+			remote, err := net.DialTimeout("tcp", addr, time.Second*20)
 			if err != nil {
 				return
 			}
