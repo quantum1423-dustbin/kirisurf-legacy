@@ -39,7 +39,7 @@ func main() {
 	INFO("Kirisurf %s started! mkh=%s", version, MasterKeyHash)
 	go func() {
 		for {
-			runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+			runtime.GOMAXPROCS(runtime.NumCPU())
 			time.Sleep(time.Second * 5)
 		}
 	}()

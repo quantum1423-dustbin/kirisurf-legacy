@@ -33,9 +33,9 @@ var protector sync.RWMutex
 // Refresh the directory
 func RefreshDirectory() error {
 	protector.Lock()
-	defer protector.Unlock()
 	resp, err := http.Get(strings.Join([]string{DIRADDR, "read"}, ""))
 	if err != nil {
+		protector.Unlock()
 		return err
 	}
 	defer resp.Body.Close()
@@ -44,8 +44,10 @@ func RefreshDirectory() error {
 	err = json.Unmarshal(buff.Bytes(), &KDirectory)
 	if err != nil {
 		time.Sleep(time.Second)
+		protector.Unlock()
 		return RefreshDirectory()
 	}
+	protector.Unlock()
 	return nil
 }
 
