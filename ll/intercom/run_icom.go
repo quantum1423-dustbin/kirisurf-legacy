@@ -96,8 +96,8 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 
 	// Client side. Writes stuff.
 	if !is_server {
-		defer KILL()
 		go func() {
+			defer KILL()
 			for {
 				// Accepts clients
 				incoming, err := ctx.our_srv.Accept()

@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"io"
 	"sync"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 type icom_ctx struct {
@@ -79,6 +81,7 @@ func make_icom_ctx(underlying io.ReadWriteCloser, is_server bool, do_junk bool) 
 	var _ks_exec sync.Once
 	KILL := func() {
 		_ks_exec.Do(func() {
+			kilog.Debug("Killswitching!")
 			ctx.underlying.Close()
 			ctx.is_dead = true
 			close(killswitch)
