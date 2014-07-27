@@ -14,6 +14,7 @@ type BufferedPipe struct {
 	data_avail  chan bool
 	lock        chan bool
 	closed      bool
+	close_ch    chan bool
 	buffer_free chan bool
 }
 
@@ -25,6 +26,7 @@ func NewBufferedPipe() *BufferedPipe {
 	toret.lock = make(chan bool, 1)
 	toret.lock <- true
 	toret.buffer_free = make(chan bool, 1)
+	toret.close_ch = make(chan bool)
 	return toret
 }
 
@@ -34,6 +36,7 @@ func (pipe *BufferedPipe) Close() error {
 		pipe.lock <- true
 		return nil
 	}
+	close(pipe.close_ch)
 	pipe.closed = true
 	pipe.lock <- true
 	select {
@@ -51,7 +54,11 @@ func (pipe *BufferedPipe) Write(p []byte) (int, error) {
 	}
 	if len(pipe.buffer) > 65536 {
 		pipe.lock <- true
-		<-pipe.buffer_free
+		select {
+		case <-pipe.buffer_free:
+		case <-pipe.close_ch:
+			return 0, io.ErrClosedPipe
+		}
 		return pipe.Write(p)
 	}
 
@@ -76,7 +83,7 @@ func (pipe *BufferedPipe) Read(p []byte) (int, error) {
 		pipe.lock <- true
 		return 0, io.EOF
 	}
-	//fmt.Println("telling people buff now free")
+
 	select {
 	case pipe.buffer_free <- true:
 	default:
@@ -87,6 +94,8 @@ func (pipe *BufferedPipe) Read(p []byte) (int, error) {
 		if !rslt {
 			return 0, io.EOF
 		}
+	case <-pipe.close_ch:
+		return 0, io.EOF
 	}
 	return pipe.Read(p)
 }
