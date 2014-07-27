@@ -5,7 +5,6 @@ import (
 	"flag"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -37,12 +36,6 @@ func main() {
 		MasterConfig.Network.MinCircuitLen = 1
 	}
 	INFO("Kirisurf %s started! mkh=%s", version, MasterKeyHash)
-	go func() {
-		for {
-			runtime.GOMAXPROCS(runtime.NumCPU())
-			time.Sleep(time.Second * 5)
-		}
-	}()
 	set_gui_progress(0.1)
 	INFO("Bootstrapping 10%%: finding directory address...")
 	dirclient.DIRADDR, _ = dirclient.FindDirectoryURL()
