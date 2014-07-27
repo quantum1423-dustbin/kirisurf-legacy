@@ -31,7 +31,8 @@ func MakeIntercomServer(laddr string) IntercomServer {
 			}
 			realclient, err := kiss.Obfs4fHandshake(newclient, true, bla[0])
 			if err != nil {
-				panic(err.Error())
+				newclient.Close()
+				continue
 			}
 			go func() {
 				ctx := make_icom_ctx(realclient, true, true)
