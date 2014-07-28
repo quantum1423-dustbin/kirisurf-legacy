@@ -7,6 +7,7 @@ import (
 	"kirisurf/ll/intercom"
 	"net"
 	"runtime"
+	"time"
 )
 
 var circ_ch chan intercom.MultiplexClient
@@ -16,6 +17,7 @@ func produce_circ() intercom.MultiplexClient {
 	lel, err := build_subcircuit(xaxa)
 	if err != nil {
 		dirclient.RefreshDirectory()
+		time.Sleep(time.Second)
 		return produce_circ()
 	}
 	return intercom.MakeMultiplexClient(lel)

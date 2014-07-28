@@ -5,6 +5,7 @@ import (
 	"flag"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/kiss"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ var singhop = flag.Bool("singhop", false, "single hop or not")
 var version = "NOT_A_RELEASE_VERSION"
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	go run_monitor_loop()
 	flag.Parse()
 	if *confloc == "" {
