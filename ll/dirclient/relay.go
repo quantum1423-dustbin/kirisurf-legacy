@@ -27,10 +27,10 @@ func RunRelay(port int, keyhash string, isexit bool) {
 			port, PROTVER, keyhash, ieflag)
 		r, e := http.Get(url)
 		if e != nil {
-			r.Body.Close()
 			time.Sleep(time.Second * 10)
 			continue
 		}
+		r.Body.Close()
 		time.Sleep(time.Second * 20)
 	}
 }
