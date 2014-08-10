@@ -1,4 +1,4 @@
-package intercom
+package common
 
 import (
 	"io"

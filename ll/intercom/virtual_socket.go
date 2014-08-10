@@ -3,11 +3,12 @@ package intercom
 import (
 	"errors"
 	"io"
+	"kirisurf/ll/common"
 )
 
 type virtsock struct {
-	reader *BufferedPipe
-	writer *BufferedPipe
+	reader *common.BufferedPipe
+	writer *common.BufferedPipe
 }
 
 func (xaxa *virtsock) Read(p []byte) (int, error) {
@@ -32,7 +33,7 @@ func (xaxa *virtsock) Flipped() *virtsock {
 }
 
 func new_vs() *virtsock {
-	return &virtsock{NewBufferedPipe(), NewBufferedPipe()}
+	return &virtsock{common.NewBufferedPipe(), common.NewBufferedPipe()}
 }
 
 type VirtualServer struct {
