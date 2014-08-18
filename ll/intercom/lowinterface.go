@@ -56,7 +56,7 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 				return
 			}
 			defer remote.Close()
-			rlrem := rwcutils.RateLimit(remote, 40, 200)
+			rlrem := rwcutils.RateLimit(remote, 10, 200)
 			err = socks5.CompleteRequest(0x00, thing)
 			if err != nil {
 				return
