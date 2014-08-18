@@ -19,6 +19,7 @@ var MasterKeyHash = hash_base32(MasterKey.Public)
 
 var confloc = flag.String("c", "", "config location")
 var singhop = flag.Bool("singhop", false, "single hop or not")
+var noclient = flag.Bool("noclient", false, "server only")
 
 var version = "NOT_A_RELEASE_VERSION"
 
@@ -76,6 +77,11 @@ func main() {
 			kilog.Info("UPnP successfully forwarded port")
 		}()
 		kilog.Info("Started server!")
+		if *noclient {
+			for {
+				time.Sleep(time.Second)
+			}
+		}
 	}
 	run_client_loop()
 	kilog.Info("Kirisurf exited")
