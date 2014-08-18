@@ -7,41 +7,28 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-func FindOnePath(guidelen int) []KNode {
+func FindExitPath(guidelen int) []KNode {
 	protector.RLock()
 	defer protector.RUnlock()
-	return FindPath(KDirectory, guidelen)
+	return findPath(KDirectory, guidelen, func(nd KNode) bool {
+		return nd.ExitNode && nd.ProtocolVersion >= 300
+	})
+}
+
+func FindPath(guidelen int, condition func(KNode) bool) []KNode {
+	protector.RLock()
+	defer protector.RUnlock()
+	return findPath(KDirectory, guidelen, condition)
 }
 
 func FindPathGroup(guidelen int) [][]KNode {
 	protector.RLock()
 	defer protector.RUnlock()
 
-	// We first find one path and obtain the endpoint
-	protopath := FindPath(KDirectory, guidelen)
-	endpoint := protopath[len(protopath)-1]
-
-	// Make a copy of the directory
-	DirCopy := make([]KNode, len(KDirectory))
-	copy(DirCopy, KDirectory)
-
-	// Unmark all nodes except endpoint as exit
-	for i := 0; i < len(DirCopy); i++ {
-		if DirCopy[i].Address != endpoint.Address {
-			DirCopy[i].ExitNode = false
-		}
-	}
-
-	// Return 16 random paths
-	toret := make([][]KNode, 16)
-	for i := 0; i < 16; i++ {
-		toret[i] = FindPath(DirCopy, guidelen)
-	}
-
-	return toret
+	panic("Of stub!")
 }
 
-func FindPath(directory []KNode, minlen int) []KNode {
+func findPath(directory []KNode, minlen int, condition func(KNode) bool) []KNode {
 	if minlen > len(directory) {
 		minlen = len(directory)
 	}
@@ -57,7 +44,8 @@ func FindPath(directory []KNode, minlen int) []KNode {
 	if len(directory) < minlen {
 		minlen = len(directory)
 		if minlen == 0 {
-			panic("No nodes online, cannot build any circuit!!!!")
+			kilog.Warning("No nodes online, cannot build any circuit!!!!")
+			return nil
 		}
 	}
 	toret := make([]KNode, 0)
@@ -78,13 +66,13 @@ func FindPath(directory []KNode, minlen int) []KNode {
 	for {
 		adj := toret[endptr].Adjacents
 		// If already at the end, return
-		if endptr+1 >= minlen && toret[endptr].ExitNode && toret[endptr].ProtocolVersion >= 300 {
+		if endptr+1 >= minlen && condition(toret[endptr]) {
 			// We want to almost always prune away paths that are ludicrously long,
 			// but we can use them if no other choice
 			if endptr-minlen < 3 && endptr/minlen <= 2 || rand256() < 3 {
 				return toret
 			} else {
-				return FindPath(directory, minlen)
+				return findPath(directory, minlen, condition)
 			}
 		}
 		// Otherwise chug along
@@ -99,6 +87,11 @@ func FindPath(directory []KNode, minlen int) []KNode {
 		}
 		toret = append(toret, next)
 		endptr++
+		// Absolutely ridiculous paths
+		if len(toret) > 1000 {
+			kilog.Warning("Didn't find a valid path at all!")
+			return nil
+		}
 	}
 	panic("Shouldn't get here")
 }

@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"kirisurf/ll/circuitry"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/intercom"
 	"kirisurf/ll/kiss"
@@ -58,7 +59,7 @@ func sc_server_real_handler(_wire io.ReadWriteCloser) (err error) {
 			}
 		}
 		kilog.Debug("Continuing to %s", qqq.Address)
-		remm, err := dialer.Dial(old2new(qqq.Address))
+		remm, err := circuitry.Dialer.Dial(circuitry.Old2New(qqq.Address))
 		if err != nil {
 			return err
 		}

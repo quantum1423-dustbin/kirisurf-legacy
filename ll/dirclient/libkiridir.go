@@ -55,11 +55,25 @@ func RefreshDirectory() error {
 func PKeyLookup(pkey string) *KNode {
 	protector.RLock()
 	defer protector.RUnlock()
-	toret := (*KNode)(nil)
+	toret := new(KNode)
+	toret = nil
 	for _, val := range KDirectory {
 		if val.PublicKey == pkey {
 			toret = &val
 			break
+		}
+	}
+	return toret
+}
+
+// Get neighbors
+func MyNeighbors() []KNode {
+	protector.RLock()
+	defer protector.RUnlock()
+	toret := make([]KNode, 0)
+	for _, val := range KDirectory {
+		if val.Address != "(hidden)" {
+			toret = append(toret, val)
 		}
 	}
 	return toret

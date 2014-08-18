@@ -3,6 +3,7 @@ package main
 
 import (
 	"io"
+	"kirisurf/ll/circuitry"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/intercom"
 	"net"
@@ -13,8 +14,8 @@ import (
 var circ_ch chan intercom.MultiplexClient
 
 func produce_circ() intercom.MultiplexClient {
-	xaxa := dirclient.FindOnePath(MasterConfig.Network.MinCircuitLen)
-	lel, err := build_subcircuit(xaxa)
+	xaxa := dirclient.FindExitPath(MasterConfig.Network.MinCircuitLen)
+	lel, err := circuitry.BuildCircuit(xaxa, 255)
 	if err != nil {
 		dirclient.RefreshDirectory()
 		time.Sleep(time.Second)
