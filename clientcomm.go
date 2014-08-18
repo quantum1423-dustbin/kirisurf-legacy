@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"github.com/KirisurfProject/kilog"
 
 	"kirisurf/ll/onionstew"
 )
@@ -80,7 +81,7 @@ func run_monitor_loop() {
 	for {
 		client, err := listener.Accept()
 		if err != nil {
-			WARNING(err.Error())
+			kilog.Warning(err.Error())
 			continue
 		}
 		func() {

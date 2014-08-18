@@ -37,22 +37,22 @@ func main() {
 	if *singhop {
 		MasterConfig.Network.MinCircuitLen = 1
 	}
-	INFO("Kirisurf %s started! mkh=%s", version, MasterKeyHash)
+	kilog.Info("Kirisurf %s started! mkh=%s", version, MasterKeyHash)
 	set_gui_progress(0.1)
-	INFO("Bootstrapping 10%%: finding directory address...")
+	kilog.Info("Bootstrapping 10%%: finding directory address...")
 	dirclient.DIRADDR, _ = dirclient.FindDirectoryURL()
 	set_gui_progress(0.2)
-	INFO("Bootstrapping 20%%: found directory address, refreshing directory...")
+	kilog.Info("Bootstrapping 20%%: found directory address, refreshing directory...")
 	err := dirclient.RefreshDirectory()
 	if err != nil {
-		CRITICAL("Stuck at 20%%: directory connection error %s", err.Error())
+		kilog.Critical("Stuck at 20%%: directory connection error %s", err.Error())
 		for {
 			time.Sleep(time.Second)
 		}
 	}
 	set_gui_progress(0.3)
-	INFO("Bootstrapping 30%%: directory refreshed, beginning to build circuits...")
-	INFO(MasterConfig.General.Role)
+	kilog.Info("Bootstrapping 30%%: directory refreshed, beginning to build circuits...")
+	kilog.Info(MasterConfig.General.Role)
 	go run_diagnostic_loop()
 	dirclient.RefreshDirectory()
 	if MasterConfig.General.Role == "server" {
@@ -63,11 +63,11 @@ func main() {
 		go dirclient.RunRelay(prt, MasterKeyHash,
 			MasterConfig.General.IsExit)
 		set_gui_progress(1.0)
-		INFO("Bootstrapping 100%%: server started!")
+		kilog.Info("Bootstrapping 100%%: server started!")
 		for {
 			time.Sleep(time.Second * 10)
 		}
 	}
 	run_client_loop()
-	INFO("Kirisurf exited")
+	kilog.Info("Kirisurf exited")
 }

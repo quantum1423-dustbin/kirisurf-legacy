@@ -9,6 +9,8 @@ import (
 	"net"
 	"runtime"
 	"time"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 var circ_ch chan intercom.MultiplexClient
@@ -31,7 +33,7 @@ func run_client_loop() {
 	}
 	circ_ch <- produce_circ()
 	set_gui_progress(1.0)
-	INFO("Bootstrapping 100%%: client started!")
+	kilog.Info("Bootstrapping 100%%: client started!")
 
 	go func() {
 		for i := 0; i < 5; i++ {
@@ -41,7 +43,7 @@ func run_client_loop() {
 	for {
 		nconn, err := listener.Accept()
 		if err != nil {
-			WARNING("Problem while accepting client socket: %s", err.Error())
+			kilog.Warning("Problem while accepting client socket: %s", err.Error())
 			continue
 		}
 		go func() {
@@ -74,7 +76,7 @@ func run_diagnostic_loop() {
 	for {
 		nconn, err := listener.Accept()
 		if err != nil {
-			WARNING("Problem while accepting stacktrace diag socket: %s", err.Error())
+			kilog.Warning("Problem while accepting stacktrace diag socket: %s", err.Error())
 			continue
 		}
 		go func() {

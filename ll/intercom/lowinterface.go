@@ -5,6 +5,8 @@ import (
 	"kirisurf/ll/socks5"
 	"net"
 	"time"
+
+	"github.com/KirisurfProject/kilog"
 )
 
 type MultiplexClient struct {
@@ -43,10 +45,17 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 			}
 			remote, err := net.DialTimeout("tcp", addr, time.Second*20)
 			if err != nil {
+				kilog.Debug("Connection to %s failed: %s", addr, err.Error())
+				e := err.(net.Error)
+				if e.Timeout() {
+					socks5.CompleteRequest(0x06, thing)
+				} else {
+					socks5.CompleteRequest(0x01, thing)
+				}
 				return
 			}
 			defer remote.Close()
-			err = socks5.CompleteRequest(thing)
+			err = socks5.CompleteRequest(0x00, thing)
 			if err != nil {
 				return
 			}
@@ -54,6 +63,7 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 				defer remote.Close()
 				io.Copy(remote, thing)
 			}()
+			kilog.Debug("Opened connection to %s", addr)
 			io.Copy(thing, remote)
 		}()
 	}

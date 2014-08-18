@@ -6,10 +6,10 @@ import (
 	"io"
 )
 
-func CompleteRequest(conn io.ReadWriteCloser) error {
+func CompleteRequest(errcode byte, conn io.ReadWriteCloser) error {
 	scratch := make([]byte, 128)
 	scratch[0] = 0x05
-	scratch[1] = 0x00
+	scratch[1] = errcode
 	scratch[2] = 0x00
 	scratch[3] = 0x01
 	scratch[4] = 0x00

@@ -111,7 +111,7 @@ func NewSCServer(addr string) SCServer {
 				client, err := listener.Accept()
 				//log.Debug("Of acceptings client: %s", client.RemoteAddr())
 				if err != nil {
-					CRITICAL(err.Error())
+					kilog.Critical(err.Error())
 					client.Close()
 					continue
 				}
