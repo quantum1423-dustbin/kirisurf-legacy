@@ -131,7 +131,7 @@ func (thing SCServer) Kill() {
 	thing.killer <- true
 }
 
-func RegisterNGSCServer(addr string) {
+func RegisterNGSCServer(addr string) string {
 	port, _ := strconv.Atoi(strings.Split(addr, ":")[1])
 	naddr := fmt.Sprintf("kirisurf@%s:%d", strings.Split(addr, ":")[0], port+1)
 	listener := intercom.MakeIntercomServer(naddr)
@@ -143,4 +143,5 @@ func RegisterNGSCServer(addr string) {
 			}()
 		}
 	}()
+	return naddr
 }

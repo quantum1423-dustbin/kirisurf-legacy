@@ -57,16 +57,25 @@ func main() {
 	dirclient.RefreshDirectory()
 	if MasterConfig.General.Role == "server" {
 		NewSCServer(MasterConfig.General.ORAddr)
-		RegisterNGSCServer(MasterConfig.General.ORAddr)
+		addr := RegisterNGSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
 		go dirclient.RunRelay(prt, MasterKeyHash,
 			MasterConfig.General.IsExit)
-		set_gui_progress(1.0)
-		kilog.Info("Bootstrapping 100%%: server started!")
-		for {
-			time.Sleep(time.Second * 10)
-		}
+		go func() {
+			err := UPnPForwardAddr(MasterConfig.General.ORAddr)
+			if err != nil {
+				kilog.Warning("UPnP failed: %s", err)
+				return
+			}
+			err = UPnPForwardAddr(addr)
+			if err != nil {
+				kilog.Warning("UPnP failed: %s", err)
+				return
+			}
+			kilog.Info("UPnP successfully forwarded port")
+		}()
+		kilog.Info("Started server!")
 	}
 	run_client_loop()
 	kilog.Info("Kirisurf exited")
