@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/KirisurfProject/kilog"
+	"github.com/KirisurfProject/rwcutils"
 )
 
 type MultiplexClient struct {
@@ -55,16 +56,17 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 				return
 			}
 			defer remote.Close()
+			rlrem := rwcutils.RateLimit(remote, 40, 200)
 			err = socks5.CompleteRequest(0x00, thing)
 			if err != nil {
 				return
 			}
 			go func() {
-				defer remote.Close()
-				io.Copy(remote, thing)
+				defer rlrem.Close()
+				io.Copy(rlrem, thing)
 			}()
 			kilog.Debug("Opened connection to %s", addr)
-			io.Copy(thing, remote)
+			io.Copy(thing, rlrem)
 		}()
 	}
 }
