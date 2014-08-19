@@ -9,6 +9,7 @@ type Config struct {
 	}
 	Network struct {
 		MinCircuitLen int
+		OverrideUPnP  bool
 	}
 }
 
@@ -21,4 +22,5 @@ func init() {
 	MasterConfig.General.SocksAddr = "127.0.0.1:9090"
 	MasterConfig.General.IsExit = false
 	MasterConfig.General.ORAddr = "0.0.0.0:2383"
+	MasterConfig.Network.OverrideUPnP = false
 }

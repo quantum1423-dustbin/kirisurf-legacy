@@ -61,20 +61,28 @@ func main() {
 		addr := RegisterNGSCServer(MasterConfig.General.ORAddr)
 		prt, _ := strconv.Atoi(
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
-		go dirclient.RunRelay(prt, MasterKeyHash,
-			MasterConfig.General.IsExit)
 		go func() {
 			err := UPnPForwardAddr(MasterConfig.General.ORAddr)
 			if err != nil {
 				kilog.Warning("UPnP failed: %s", err)
+				if MasterConfig.Network.OverrideUPnP {
+					go dirclient.RunRelay(prt, MasterKeyHash,
+						MasterConfig.General.IsExit)
+				}
 				return
 			}
 			err = UPnPForwardAddr(addr)
 			if err != nil {
 				kilog.Warning("UPnP failed: %s", err)
+				if MasterConfig.Network.OverrideUPnP {
+					go dirclient.RunRelay(prt, MasterKeyHash,
+						MasterConfig.General.IsExit)
+				}
 				return
 			}
 			kilog.Info("UPnP successfully forwarded port")
+			go dirclient.RunRelay(prt, MasterKeyHash,
+				MasterConfig.General.IsExit)
 		}()
 		kilog.Info("Started server!")
 		if *noclient {
