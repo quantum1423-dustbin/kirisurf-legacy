@@ -20,7 +20,7 @@ func Old2New(addr string) string {
 	return naddr
 }
 
-var dialer *intercom.IntercomDialer
+var dialer = new(intercom.IntercomDialer)
 
 var Dialer = dialer
 
