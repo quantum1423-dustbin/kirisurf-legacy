@@ -31,6 +31,6 @@ func RunRelay(port int, keyhash string, isexit bool) {
 			continue
 		}
 		r.Body.Close()
-		time.Sleep(time.Second * 20)
+		time.Sleep(time.Second * 500)
 	}
 }
