@@ -80,5 +80,5 @@ func BuildCircuit(slc []dirclient.KNode, subchannel int) (io.ReadWriteCloser, er
 }
 
 func init() {
-	dialer = intercom.MakeIntercomDialer()
+	*dialer = *intercom.MakeIntercomDialer()
 }
