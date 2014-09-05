@@ -19,7 +19,7 @@ var circ_ch chan intercom.MultiplexClient
 
 func produce_circ() intercom.MultiplexClient {
 	xaxa := dirclient.FindExitPath(MasterConfig.Network.MinCircuitLen)
-	lel, err := circuitry.BuildCircuit(xaxa, 255)
+	lel, err := circuitry.BuildCircuit(xaxa, 254)
 	if err != nil {
 		dirclient.RefreshDirectory()
 		time.Sleep(time.Second)
@@ -68,7 +68,8 @@ func run_client_loop() {
 			}
 			circ_ch <- newcirc
 			defer remote.Close()
-
+			lenbts := []byte{byte((len(addr) + 1) % 256), byte((len(addr) + 1) / 256)}
+			_, err = remote.Write(lenbts)
 			_, err = remote.Write([]byte(fmt.Sprintf("t%s", addr)))
 			if err != nil {
 				kilog.Debug("Failed to send tunnelling request to %s!", addr)

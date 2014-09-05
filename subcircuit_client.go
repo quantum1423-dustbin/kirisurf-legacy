@@ -70,7 +70,7 @@ func build_subcircuit(slc []dirclient.KNode) (io.ReadWriteCloser, error) {
 		gwire.Close()
 		return nil, err
 	}
-	kilog.Debug("Sent SC_TERMINATE")
+	kilog.Debug("Sent SC_TERMINATE, 254")
 	return wire, nil
 }
 
