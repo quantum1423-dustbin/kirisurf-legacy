@@ -33,14 +33,21 @@ func sc_server_real_handler(_wire io.ReadWriteCloser) (err error) {
 		if !MasterConfig.General.IsExit {
 			return nil
 		}
-		kilog.Debug("terminating")
+		kilog.Debug("opening legacy (stew) circuit")
 		e2e_server_handler_old(wire)
 	} else if thing[0] == 255 {
-		// Terminate with NEW GENERATION
+		// Terminate with kinda old
 		if !MasterConfig.General.IsExit {
 			return nil
 		}
-		kilog.Debug("terminating NG")
+		kilog.Debug("opening kinda old circuit")
+		e2e_server_kinda_old_handler(wire)
+	} else if thing[0] == 254 {
+		// Terminate with new
+		if !MasterConfig.General.IsExit {
+			return nil
+		}
+		kilog.Debug("opening circuit")
 		e2e_server_handler(wire)
 	} else {
 		xaxa := make([]byte, thing[0])

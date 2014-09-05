@@ -2,10 +2,12 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"kirisurf/ll/circuitry"
 	"kirisurf/ll/dirclient"
 	"kirisurf/ll/intercom"
+	"kirisurf/ll/socks5"
 	"net"
 	"runtime"
 	"time"
@@ -46,8 +48,16 @@ func run_client_loop() {
 			kilog.Warning("Problem while accepting client socket: %s", err.Error())
 			continue
 		}
+		addr, err := socks5.ReadRequest(nconn)
+		if err != nil {
+			kilog.Warning("Problem while reading SOCKS5 request")
+			nconn.Close()
+			continue
+		}
 		go func() {
-			defer nconn.Close()
+			defer func() {
+				nconn.Close()
+			}()
 		retry:
 			newcirc := <-circ_ch
 			remote, err := newcirc.SocksAccept(nconn)
@@ -58,11 +68,45 @@ func run_client_loop() {
 			}
 			circ_ch <- newcirc
 			defer remote.Close()
-			go func() {
-				defer remote.Close()
-				io.Copy(remote, nconn)
-			}()
-			io.Copy(nconn, remote)
+
+			_, err = remote.Write([]byte(fmt.Sprintf("t%s", addr)))
+			if err != nil {
+				kilog.Debug("Failed to send tunnelling request to %s!", addr)
+				socks5.CompleteRequest(0x03, nconn)
+				return
+			}
+
+			code := make([]byte, 4)
+			_, err = io.ReadFull(remote, code)
+			if err != nil {
+				kilog.Debug("Failed to read response for %s!", addr)
+				socks5.CompleteRequest(0x03, nconn)
+				return
+			}
+
+			switch string(code) {
+			case "OKAY":
+				kilog.Debug("Successfully tunneled %s!", addr)
+				socks5.CompleteRequest(0x00, nconn)
+				go func() {
+					defer remote.Close()
+					io.Copy(remote, nconn)
+				}()
+				io.Copy(nconn, remote)
+			case "TMOT":
+				kilog.Debug("Tunnel to %s timed out!", addr)
+				socks5.CompleteRequest(0x06, nconn)
+			case "NOIM":
+				kilog.Debug("Tunnel type for %s isn't implemented by server!", addr)
+				socks5.CompleteRequest(0x07, nconn)
+			case "FAIL":
+				kilog.Debug("Tunnel to %s cannot be established!", addr)
+				socks5.CompleteRequest(0x04, nconn)
+			default:
+				kilog.Debug("Protocol error on tunnel to %s!", addr)
+				socks5.CompleteRequest(0x01, nconn)
+				return
+			}
 		}()
 	}
 }

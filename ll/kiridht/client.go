@@ -1,0 +1,3 @@
+package kiridht
+
+func Grab

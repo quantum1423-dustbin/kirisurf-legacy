@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"code.google.com/p/gcfg"
 
 	"github.com/KirisurfProject/kilog"
@@ -53,7 +54,6 @@ func main() {
 	}
 	set_gui_progress(0.3)
 	kilog.Info("Bootstrapping 30%%: directory refreshed, beginning to build circuits...")
-	kilog.Info(MasterConfig.General.Role)
 	go run_diagnostic_loop()
 	dirclient.RefreshDirectory()
 	if MasterConfig.General.Role == "server" {

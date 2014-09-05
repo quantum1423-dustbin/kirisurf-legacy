@@ -17,7 +17,7 @@ var MasterConfig Config
 
 func init() {
 	//defaults
-	MasterConfig.General.Role = "server"
+	MasterConfig.General.Role = "client"
 	MasterConfig.Network.MinCircuitLen = 4
 	MasterConfig.General.SocksAddr = "127.0.0.1:9090"
 	MasterConfig.General.IsExit = false

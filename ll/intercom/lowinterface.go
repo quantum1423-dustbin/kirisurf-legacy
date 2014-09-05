@@ -40,6 +40,58 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 		}
 		go func() {
 			defer thing.Close()
+			lenbts := make([]byte, 2)
+			_, err := io.ReadFull(thing, lenbts)
+			if err != nil {
+				return
+			}
+			addr := make([]byte, int(lenbts[0])+int(lenbts[1])*256)
+			_, err = io.ReadFull(thing, addr)
+			if err != nil {
+				return
+			}
+
+			if addr[0] == 't' {
+				addr = addr[1:]
+			} else {
+				kilog.Warning("UDP support not implemented yet!")
+				thing.Write([]byte("NOIM"))
+				return
+			}
+
+			remote, err := net.DialTimeout("tcp", string(addr), time.Second*20)
+			if err != nil {
+				kilog.Debug("Connection to %s failed: %s", addr, err.Error())
+				e := err.(net.Error)
+				if e.Timeout() {
+					thing.Write([]byte("TMOT"))
+				} else {
+					thing.Write([]byte("FAIL"))
+				}
+				return
+			}
+			defer remote.Close()
+			rlrem := rwcutils.RateLimit(remote, 10, 50)
+			go func() {
+				defer rlrem.Close()
+				io.Copy(rlrem, thing)
+			}()
+			kilog.Debug("Opened connection to %s", addr)
+			thing.Write([]byte("OKAY"))
+			io.Copy(thing, rlrem)
+		}()
+	}
+}
+
+func RunMultiplexSOCKSServer(transport io.ReadWriteCloser) {
+	ctx := make_icom_ctx(transport, true, false)
+	for {
+		thing, err := ctx.our_srv.Accept()
+		if err != nil {
+			return
+		}
+		go func() {
+			defer thing.Close()
 			addr, err := socks5.ReadRequest(thing)
 			if err != nil {
 				return
