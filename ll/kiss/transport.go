@@ -99,14 +99,11 @@ func (ctx *kiss_mess_ctx) Read(p []byte) (int, error) {
 }
 
 func (ctx *kiss_mess_ctx) Write(p []byte) (int, error) {
-	lenthing := make([]byte, 2)
 	crypted := ctx.write_crypter.Seal(p)
-	lenthing[0], lenthing[1] = byte(len(crypted)/256), byte(len(crypted)%256)
-	_, err := ctx.underlying.Write(lenthing)
-	if err != nil {
-		return 0, err
-	}
-	_, err = ctx.underlying.Write(crypted)
+	towrite := make([]byte, len(crypted)+2)
+	towrite[0], towrite[1] = byte(len(crypted)/256), byte(len(crypted)%256)
+	copy(towrite[2:], crypted)
+	_, err := ctx.underlying.Write(towrite)
 	if err != nil {
 		return 0, err
 	}
