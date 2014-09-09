@@ -9,7 +9,7 @@ import (
 	"kirisurf/ll/intercom"
 	"kirisurf/ll/socks5"
 	"net"
-	"runtime"
+	"sync"
 	"time"
 
 	"github.com/KirisurfProject/kilog"
@@ -38,9 +38,15 @@ func run_client_loop() {
 	kilog.Info("Bootstrapping 100%%: client started!")
 
 	go func() {
+		var haha sync.WaitGroup
+		haha.Add(5)
 		for i := 0; i < 5; i++ {
-			circ_ch <- produce_circ()
+			go func() {
+				circ_ch <- produce_circ()
+				haha.Done()
+			}()
 		}
+		haha.Wait()
 	}()
 	for {
 		nconn, err := listener.Accept()
@@ -125,9 +131,13 @@ func run_diagnostic_loop() {
 		}
 		go func() {
 			defer nconn.Close()
-			buf := make([]byte, 65536)
-			n := runtime.Stack(buf, true)
-			nconn.Write(buf[:n])
+			for {
+				str := <-kilog.FineChannel
+				_, err := nconn.Write([]byte(fmt.Sprintf("%s\n", str)))
+				if err != nil {
+					return
+				}
+			}
 		}()
 	}
 }

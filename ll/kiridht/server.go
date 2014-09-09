@@ -1,69 +1,36 @@
 package kiridht
 
 import (
-	"bufio"
-	"encoding/binary"
+	"bytes"
 	"io"
-	"strings"
 
 	"github.com/KirisurfProject/kilog"
 )
 
+const hashConst := []byte("hello")
+
 func HandleServer(conn io.ReadWriteCloser) {
 	defer conn.Close()
-	r, w := bufio.NewReader(conn), bufio.NewWriter(conn)
-	for {
-		l, e := r.ReadString('\n')
-		if e != nil {
-			return
-		}
-		l = l[0 : len(l)-1]
-		line := strings.Split(l, " ")
-		switch line[0] {
-		case "GET":
-			key := []byte(line[1])
-			if len(key) != 8 {
-				return
-			}
-			keyy := binary.LittleEndian.Uint64(key)
-			if cacheIdx(keyy) == nil {
-				kilog.Warning("DHT: No propagation implemented yet")
-				return
-			}
-			_, err := w.Write(cacheIdx(keyy))
-			if err != nil {
-				return
-			}
-			_, err = w.WriteString("!end\n")
-			if err != nil {
-				return
-			}
-			w.Flush()
-		case "SET":
-			key := []byte(line[1])
-			if len(key) != 8 {
-				return
-			}
-			keyy := binary.LittleEndian.Uint64(key)
-			val := make([]byte, 0)
-			for {
-				line, err := r.ReadString('\n')
-				if err != nil {
-					return
-				}
-				if line == "!end\n" {
-					break
-				}
-				val = append(val, []byte(line)...)
-				if len(val) >= 1024*1024*4 {
-					return
-				}
-			}
-			cacheAdd(keyy, val)
-			w.WriteString("DUN\n")
-			w.Flush()
-		default:
-			return
-		}
+
+	// Read 1 byte command + 40 bytes key
+	line := make([]byte, 41)
+	_, err := io.ReadFull(conn, line)
+	if err != nil {
+		return
 	}
+
+	// Switch on command
+	switch line[0] {
+	case 0x00:
+		// This is an upload
+		// We get contents first
+		buff := new(bytes.Buffer)
+		_, err := io.Copy(buff, conn)
+		if err != nil {
+			kilog.Debug("DHT: Client died while uploading value: %s", err.Error())
+			return
+		}
+		key := dhtkey(kiss.KeyedHash(buff.Bytes(), hashConst)
+	}
+
 }

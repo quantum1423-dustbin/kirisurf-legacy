@@ -63,14 +63,6 @@ func main() {
 			strings.Split(MasterConfig.General.ORAddr, ":")[1])
 		go func() {
 			err := UPnPForwardAddr(MasterConfig.General.ORAddr)
-			if err != nil {
-				kilog.Warning("UPnP failed: %s", err)
-				if MasterConfig.Network.OverrideUPnP {
-					go dirclient.RunRelay(prt, MasterKeyHash,
-						MasterConfig.General.IsExit)
-				}
-				return
-			}
 			err = UPnPForwardAddr(addr)
 			if err != nil {
 				kilog.Warning("UPnP failed: %s", err)

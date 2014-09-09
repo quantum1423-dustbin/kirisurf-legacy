@@ -1,22 +1,12 @@
 package kiridht
 
-import (
-	"encoding/binary"
-	"kirisurf/ll/dirclient"
-	"kirisurf/ll/kiss"
-)
+import "encoding/base32"
 
-func GetDHTKey(nd dirclient.KNode) uint64 {
-	return binary.LittleEndian.Uint64(kiss.KeyedHash([]byte(nd.PublicKey),
-		[]byte("Kirisurf DHT magic thingy")))
-}
+type dhtkey []byte
 
-func PickClosest(target uint64, candidates []uint64) uint64 {
-	closest := candidates[0]
-	for i := 0; i < len(candidates); i++ {
-		if target-candidates[i] < target-closest {
-			closest = target
-		}
+func (lel dhtkey) tostring() string {
+	if len(lel) != 40 {
+		panic("DHT key with wrong length! WTF!")
 	}
-	return closest
+	return base32.StdEncoding.EncodeToString(lel)
 }

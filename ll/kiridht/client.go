@@ -1,3 +1,5 @@
 package kiridht
 
-func Grab
+func LookupKey(key uint64) {
+
+}

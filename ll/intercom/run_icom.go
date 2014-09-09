@@ -46,6 +46,19 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			case <-ctx.killswitch:
 				return
 			case xaxa := <-ctx.write_ch:
+				lel := "data"
+				if xaxa.flag == icom_ignore {
+					lel = "junk"
+				} else if xaxa.flag == icom_open {
+					lel = "open"
+				} else if xaxa.flag == icom_close {
+					lel = "clos"
+				} else if xaxa.flag == icom_more {
+					lel = "more"
+				}
+
+				kilog.FineDebug("[ICOM] -> %v\t%v:%v", do_junk, lel, len(xaxa.body))
+
 				buffer := new(bytes.Buffer)
 				desired_size := prob_dist.Draw()
 				prob_dist.Juggle()
@@ -136,6 +149,21 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			kilog.Debug("** icom_ctx dead @ body ** due to %s", err.Error())
 			return
 		}
+
+		xaxa := justread
+
+		lel := "data"
+		if xaxa.flag == icom_ignore {
+			lel = "junk"
+		} else if xaxa.flag == icom_open {
+			lel = "open"
+		} else if xaxa.flag == icom_close {
+			lel = "clos"
+		} else if xaxa.flag == icom_more {
+			lel = "more"
+		}
+
+		kilog.FineDebug("[ICOM] <- %v\t%v:%v", do_junk, lel, len(xaxa.body))
 
 		// Now work with the packet
 		if justread.flag == icom_ignore {

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/KirisurfProject/kilog"
-	"github.com/KirisurfProject/rwcutils"
 )
 
 type MultiplexClient struct {
@@ -71,7 +70,7 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 				return
 			}
 			defer remote.Close()
-			rlrem := rwcutils.RateLimit(remote, 10, 50)
+			rlrem := remote
 			go func() {
 				defer rlrem.Close()
 				io.Copy(rlrem, thing)
@@ -108,7 +107,7 @@ func RunMultiplexSOCKSServer(transport io.ReadWriteCloser) {
 				return
 			}
 			defer remote.Close()
-			rlrem := rwcutils.RateLimit(remote, 10, 50)
+			rlrem := remote
 			err = socks5.CompleteRequest(0x00, thing)
 			if err != nil {
 				return
