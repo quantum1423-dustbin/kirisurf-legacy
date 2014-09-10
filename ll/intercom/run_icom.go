@@ -123,6 +123,10 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				<-stable_lock
 				connid := 0
 				startidx := rand.Int() % 65536
+
+				// DEBUG!!!
+				//startidx = 0
+
 				for i := 0; i < 65536; i++ {
 					if socket_table[(i+startidx)%65536] == nil {
 						connid = (i + startidx) % 65536
@@ -181,16 +185,16 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			if !do_junk {
 				kilog.Debug("ICOM: Accepted connid %d", justread.connid)
 			}
+			// Open a connection! The caller of accept will unblock this call.
+			conn, err := VSConnect(ctx.our_srv)
+			if err != nil {
+				return
+			}
+			xaxa := make(chan icom_msg, 2048)
+			<-stable_lock
+			socket_table[justread.connid] = xaxa
+			stable_lock <- true
 			go func() {
-				// Open a connection! The caller of accept will unblock this call.
-				conn, err := VSConnect(ctx.our_srv)
-				if err != nil {
-					return
-				}
-				xaxa := make(chan icom_msg, 2048)
-				<-stable_lock
-				socket_table[justread.connid] = xaxa
-				stable_lock <- true
 				kilog.Debug("ICOM: Began processing connid %d", justread.connid)
 				// Tunnel the connection
 				icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
