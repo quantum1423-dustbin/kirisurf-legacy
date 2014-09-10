@@ -83,6 +83,8 @@ func run_client_loop() {
 				return
 			}
 
+			kilog.Debug("Sent tunneling request")
+
 			code := make([]byte, 4)
 			_, err = io.ReadFull(remote, code)
 			if err != nil {

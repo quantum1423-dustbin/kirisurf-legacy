@@ -43,7 +43,7 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 			go func() {
 				select {
 				case <-init_done:
-				case <-time.After(10):
+				case <-time.After(time.Second * 10):
 					kilog.Warning("ICOM: ** Client still no request after 10 secs **")
 				}
 			}()
