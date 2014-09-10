@@ -39,6 +39,14 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 		}
 		go func() {
 			defer thing.Close()
+			init_done := make(chan bool)
+			go func() {
+				select {
+				case <-init_done:
+				case <-time.After(10):
+					kilog.Warning("ICOM: ** Client still no request after 10 secs **")
+				}
+			}()
 			lenbts := make([]byte, 2)
 			_, err := io.ReadFull(thing, lenbts)
 			if err != nil {
@@ -51,7 +59,7 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 				kilog.Debug("** Reading destination failed! **")
 				return
 			}
-
+			init_done <- true
 			if addr[0] == 't' {
 				addr = addr[1:]
 			} else {
