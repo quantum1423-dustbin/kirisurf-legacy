@@ -122,9 +122,10 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				// Find a connid
 				<-stable_lock
 				connid := 0
+				startidx := rand.Int() % 65536
 				for i := 0; i < 65536; i++ {
-					if socket_table[i] == nil {
-						connid = i
+					if socket_table[(i+startidx)%65536] == nil {
+						connid = (i + startidx) % 65536
 						break
 					}
 				}
@@ -133,10 +134,16 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				socket_table[connid] = xaxa
 				stable_lock <- true
 				go func() {
+					if !do_junk {
+						kilog.Debug("ICOM: Opened connid %d", connid)
+					}
 					icom_tunnel(ctx, KILL, incoming, connid, xaxa, do_junk)
 					<-stable_lock
 					socket_table[connid] = nil
 					stable_lock <- true
+					if !do_junk {
+						kilog.Debug("ICOM: Closed connid %d", connid)
+					}
 				}()
 			}
 		}()
@@ -171,6 +178,9 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			continue
 		}
 		if justread.flag == icom_open && is_server {
+			if !do_junk {
+				kilog.Debug("ICOM: Accepted connid %d", justread.connid)
+			}
 			go func() {
 				// Open a connection! The caller of accept will unblock this call.
 				conn, err := VSConnect(ctx.our_srv)
@@ -183,6 +193,9 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				stable_lock <- true
 				// Tunnel the connection
 				icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
+				if !do_junk {
+					kilog.Debug("ICOM: Closed connid %d", justread.connid)
+				}
 			}()
 		} else if justread.flag == icom_data ||
 			justread.flag == icom_more {
