@@ -57,7 +57,8 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 					lel = "more"
 				}
 
-				kilog.FineDebug("[ICOM] -> %v\t%v:%v", do_junk, lel, len(xaxa.body))
+				kilog.FineDebug("[ICOM] -> %v\t%v\t%v:%v", do_junk, xaxa.connid,
+					lel, len(xaxa.body))
 
 				buffer := new(bytes.Buffer)
 				desired_size := prob_dist.Draw()
@@ -163,24 +164,26 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			lel = "more"
 		}
 
-		kilog.FineDebug("[ICOM] <- %v\t%v:%v", do_junk, lel, len(xaxa.body))
+		kilog.FineDebug("[ICOM] <- %v\t%v\t%v:%v", do_junk, xaxa.connid, lel, len(xaxa.body))
 
 		// Now work with the packet
 		if justread.flag == icom_ignore {
 			continue
 		}
 		if justread.flag == icom_open && is_server {
-			// Open a connection! The caller of accept will unblock this call.
-			conn, err := VSConnect(ctx.our_srv)
-			if err != nil {
-				return
-			}
-			xaxa := make(chan icom_msg, 2048)
-			<-stable_lock
-			socket_table[justread.connid] = xaxa
-			stable_lock <- true
-			// Tunnel the connection
-			go icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
+			go func() {
+				// Open a connection! The caller of accept will unblock this call.
+				conn, err := VSConnect(ctx.our_srv)
+				if err != nil {
+					return
+				}
+				xaxa := make(chan icom_msg, 2048)
+				<-stable_lock
+				socket_table[justread.connid] = xaxa
+				stable_lock <- true
+				// Tunnel the connection
+				icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
+			}()
 		} else if justread.flag == icom_data ||
 			justread.flag == icom_more {
 			<-stable_lock

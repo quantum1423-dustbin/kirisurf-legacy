@@ -86,7 +86,7 @@ func run_client_loop() {
 			code := make([]byte, 4)
 			_, err = io.ReadFull(remote, code)
 			if err != nil {
-				kilog.Debug("Failed to read response for %s!", addr)
+				kilog.Debug("Failed to read response for %s! (%s)", addr, err)
 				socks5.CompleteRequest(0x03, nconn)
 				return
 			}
@@ -110,7 +110,7 @@ func run_client_loop() {
 				kilog.Debug("Tunnel to %s cannot be established!", addr)
 				socks5.CompleteRequest(0x04, nconn)
 			default:
-				kilog.Debug("Protocol error on tunnel to %s!", addr)
+				kilog.Debug("Protocol error on tunnel to %s! (%s)", addr, string(code))
 				socks5.CompleteRequest(0x01, nconn)
 				return
 			}

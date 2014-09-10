@@ -42,11 +42,13 @@ func RunMultiplexServer(transport io.ReadWriteCloser) {
 			lenbts := make([]byte, 2)
 			_, err := io.ReadFull(thing, lenbts)
 			if err != nil {
+				kilog.Debug("** Reading destination length failed! **")
 				return
 			}
 			addr := make([]byte, int(lenbts[0])+int(lenbts[1])*256)
 			_, err = io.ReadFull(thing, addr)
 			if err != nil {
+				kilog.Debug("** Reading destination failed! **")
 				return
 			}
 

@@ -82,7 +82,7 @@ func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
 
 	// Encapsulate
 	func() {
-		defer local_kill()
+		defer conn.Close()
 		buff := make([]byte, 8192)
 		if !do_junk {
 			buff = make([]byte, 4096)
