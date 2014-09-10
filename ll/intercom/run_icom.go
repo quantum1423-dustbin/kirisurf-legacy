@@ -201,9 +201,13 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				if !do_junk {
 					kilog.Debug("ICOM: Closed connid %d", justread.connid)
 				}
+				<-stable_lock
+				socket_table[justread.connid] = nil
+				stable_lock <- true
 			}()
 		} else if justread.flag == icom_data ||
-			justread.flag == icom_more {
+			justread.flag == icom_more ||
+			justread.flag == icom_close {
 			<-stable_lock
 			if socket_table[justread.connid] == nil {
 				stable_lock <- true
@@ -217,20 +221,6 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			case <-ctx.killswitch:
 				return
 			default:
-			}
-		} else if justread.flag == icom_close {
-			<-stable_lock
-			if socket_table[justread.connid] == nil {
-				stable_lock <- true
-				continue
-			}
-			ch := socket_table[justread.connid]
-			socket_table[justread.connid] = nil
-			stable_lock <- true
-			select {
-			case ch <- justread:
-			case <-ctx.killswitch:
-				return
 			}
 		} else {
 			kilog.Debug("** icom_ctx dead ** due to invalid packet")
