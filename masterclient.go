@@ -54,16 +54,16 @@ func run_client_loop() {
 			kilog.Warning("Problem while accepting client socket: %s", err.Error())
 			continue
 		}
-		addr, err := socks5.ReadRequest(nconn)
-		if err != nil {
-			kilog.Warning("Problem while reading SOCKS5 request")
-			nconn.Close()
-			continue
-		}
 		go func() {
 			defer func() {
 				nconn.Close()
 			}()
+			addr, err := socks5.ReadRequest(nconn)
+			if err != nil {
+				kilog.Warning("Problem while reading SOCKS5 request")
+				return
+			}
+			kilog.Debug("Attempting connection to %s...", addr)
 		retry:
 			newcirc := <-circ_ch
 			remote, err := newcirc.SocksAccept(nconn)

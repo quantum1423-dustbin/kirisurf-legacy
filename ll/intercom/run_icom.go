@@ -191,6 +191,7 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 				<-stable_lock
 				socket_table[justread.connid] = xaxa
 				stable_lock <- true
+				kilog.Debug("ICOM: Began processing connid %d", justread.connid)
 				// Tunnel the connection
 				icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
 				if !do_junk {
