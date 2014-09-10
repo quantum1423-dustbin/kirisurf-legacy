@@ -6,12 +6,7 @@ import (
 )
 
 func icom_tunnel(ctx *icom_ctx, KILL func(), conn io.ReadWriteCloser,
-	connid int, reader chan icom_msg, do_junk bool) {
-
-	PAUSELIM := 2048
-	if do_junk {
-		PAUSELIM = 2048
-	}
+	connid int, reader chan icom_msg, do_junk bool, PAUSELIM int) {
 
 	local_close := make(chan bool)
 	var _thing sync.Once

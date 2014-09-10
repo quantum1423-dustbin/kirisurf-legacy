@@ -8,7 +8,7 @@ import (
 	"github.com/KirisurfProject/kilog"
 )
 
-func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
+func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool, PAUSELIM int) {
 	defer KILL()
 	socket_table := make([]chan icom_msg, 65536)
 	stable_lock := make(chan bool, 1)
@@ -134,14 +134,14 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 					}
 				}
 				ctx.write_ch <- icom_msg{icom_open, connid, make([]byte, 0)}
-				xaxa := make(chan icom_msg, 2048)
+				xaxa := make(chan icom_msg, PAUSELIM)
 				socket_table[connid] = xaxa
 				stable_lock <- true
 				go func() {
 					if !do_junk {
 						kilog.Debug("ICOM: Opened connid %d", connid)
 					}
-					icom_tunnel(ctx, KILL, incoming, connid, xaxa, do_junk)
+					icom_tunnel(ctx, KILL, incoming, connid, xaxa, do_junk, PAUSELIM)
 					<-stable_lock
 					socket_table[connid] = nil
 					stable_lock <- true
@@ -190,14 +190,14 @@ func run_icom_ctx(ctx *icom_ctx, KILL func(), is_server bool, do_junk bool) {
 			if err != nil {
 				return
 			}
-			xaxa := make(chan icom_msg, 2048)
+			xaxa := make(chan icom_msg, PAUSELIM)
 			<-stable_lock
 			socket_table[justread.connid] = xaxa
 			stable_lock <- true
 			go func() {
 				kilog.Debug("ICOM: Began processing connid %d", justread.connid)
 				// Tunnel the connection
-				icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk)
+				icom_tunnel(ctx, KILL, conn, justread.connid, xaxa, do_junk, PAUSELIM)
 				if !do_junk {
 					kilog.Debug("ICOM: Closed connid %d", justread.connid)
 				}
