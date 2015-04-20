@@ -3,7 +3,7 @@ package main
 
 import (
 	"encoding/base32"
-	"kirisurf/ll/kiss"
+	"kirisurf-legacy/ll/kiss"
 	"strings"
 )
 

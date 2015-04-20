@@ -1,6 +1,6 @@
-kirisurf.conf
-kirisurf
-kirisurf.i386
-kirisurf.exe
+kirisurf-legacy.conf
+kirisurf-legacy
+kirisurf-legacy.i386
+kirisurf-legacy.exe
 ll/kicrypt/libtomcrypt.a
 *.log

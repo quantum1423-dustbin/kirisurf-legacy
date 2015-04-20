@@ -3,7 +3,7 @@ package intercom
 import (
 	"errors"
 	"io"
-	"kirisurf/ll/common"
+	"kirisurf-legacy/ll/common"
 )
 
 type virtsock struct {

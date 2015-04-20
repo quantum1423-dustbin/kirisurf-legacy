@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var DIRADDR = "https://directory.kirisurf.org/"
+var DIRADDR = "https://directory.kirisurf-legacy.org/"
 
 // Maintains the big database
 type KNode struct {

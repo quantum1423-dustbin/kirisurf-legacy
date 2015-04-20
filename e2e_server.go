@@ -2,7 +2,7 @@ package main
 
 import (
 	"io"
-	"kirisurf/ll/intercom"
+	"kirisurf-legacy/ll/intercom"
 )
 
 func e2e_server_handler(socket io.ReadWriteCloser) {

@@ -2,7 +2,7 @@ package kiss
 
 import (
 	"io"
-	"kirisurf/ll/common"
+	"kirisurf-legacy/ll/common"
 )
 
 // This file converts a strictly message-based ReadWriteCloser to a stream RWC.

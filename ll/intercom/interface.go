@@ -3,7 +3,7 @@ package intercom
 import (
 	"errors"
 	"io"
-	"kirisurf/ll/kiss"
+	"kirisurf-legacy/ll/kiss"
 	"net"
 	"strings"
 	"sync"

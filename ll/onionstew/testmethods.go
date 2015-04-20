@@ -14,7 +14,7 @@ import (
 func test_socks_client() {
 	return /*
 		generator := func() io.ReadWriteCloser {
-			toret, err := net.Dial("tcp", "oozora.servers.kirisurf.org:5555")
+			toret, err := net.Dial("tcp", "oozora.servers.kirisurf-legacy.org:5555")
 			if err != nil {
 				panic(err.Error())
 			}

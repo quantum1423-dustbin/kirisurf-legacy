@@ -2,7 +2,7 @@ package intercom
 
 import (
 	"io"
-	"kirisurf/ll/socks5"
+	"kirisurf-legacy/ll/socks5"
 	"net"
 	"time"
 

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"github.com/KirisurfProject/kilog"
 
-	"kirisurf/ll/onionstew"
+	"kirisurf-legacy/ll/onionstew"
 )
 
 var global_monitor_chan = make(chan []byte, 16)

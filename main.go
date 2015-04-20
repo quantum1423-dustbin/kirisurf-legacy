@@ -1,10 +1,10 @@
-// kirisurf project main.go
+// kirisurf-legacy project main.go
 package main
 
 import (
 	"flag"
-	"kirisurf/ll/dirclient"
-	"kirisurf/ll/kiss"
+	"kirisurf-legacy/ll/dirclient"
+	"kirisurf-legacy/ll/kiss"
 	"math/rand"
 	"strconv"
 	"strings"

@@ -4,10 +4,10 @@ package main
 import (
 	"fmt"
 	"io"
-	"kirisurf/ll/circuitry"
-	"kirisurf/ll/dirclient"
-	"kirisurf/ll/intercom"
-	"kirisurf/ll/kiss"
+	"kirisurf-legacy/ll/circuitry"
+	"kirisurf-legacy/ll/dirclient"
+	"kirisurf-legacy/ll/intercom"
+	"kirisurf-legacy/ll/kiss"
 	"net"
 	"strconv"
 	"strings"
@@ -140,7 +140,7 @@ func (thing SCServer) Kill() {
 
 func RegisterNGSCServer(addr string) string {
 	port, _ := strconv.Atoi(strings.Split(addr, ":")[1])
-	naddr := fmt.Sprintf("kirisurf@%s:%d", strings.Split(addr, ":")[0], port+1)
+	naddr := fmt.Sprintf("kirisurf-legacy@%s:%d", strings.Split(addr, ":")[0], port+1)
 	listener := intercom.MakeIntercomServer(naddr)
 	go func() {
 		for {

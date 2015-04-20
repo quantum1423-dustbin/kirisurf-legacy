@@ -3,7 +3,7 @@ package main
 
 import (
 	"io"
-	"kirisurf/ll/onionstew"
+	"kirisurf-legacy/ll/onionstew"
 	"net"
 
 	"github.com/KirisurfProject/kilog"
