@@ -92,6 +92,10 @@ func FindDirectoryURL() (string, error) {
 		if err != nil {
 			return
 		}
+		defer func() {
+			if r := recover() ; r != nil {
+			}
+		}()
 		defer resp.Body.Close()
 		thing := new(bytes.Buffer)
 		io.Copy(thing, resp.Body)
